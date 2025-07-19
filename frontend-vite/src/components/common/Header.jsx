@@ -206,6 +206,7 @@ function Header() {
   // Référence pour le conteneur du menu burger
   const burgerRef = useRef(null);
   const navigate = useNavigate(); // Crée une fonction navigate pour changer de page
+  const [userRole, setUserRole] = useState(null);
 
   const handleLoginClick = () => {
     setIsLoginOpen(true);
@@ -257,6 +258,22 @@ useEffect(() => {
     }
   }
   fetchUserPhoto();
+}, []);
+
+useEffect(() => {
+  async function fetchUserRole() {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const response = await axios.get("http://localhost:5000/api/user", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUserRole(response.data.role);
+    } catch (err) {
+      console.error("Error fetching user role:", err);
+    }
+  }
+  fetchUserRole();
 }, []);
 
 useEffect(() => {
@@ -322,6 +339,9 @@ return (
         <MenuOption onClick={() => navigate("/profile")}>Profile</MenuOption>
         <MenuOption onClick={() => navigate("/favorites")}>Favourites</MenuOption>
         <MenuOption onClick={() => navigate("/bookmarks")}>Bookmarks</MenuOption>
+        {userRole === "admin" || userRole === "librarian" ? (
+  <MenuOption onClick={() => navigate("/admin")}>Admin</MenuOption>
+) : null}
           <MenuOption $isLogout onClick={handleLogout}>Logout</MenuOption>
         </div>
       </BurgerMenu>
