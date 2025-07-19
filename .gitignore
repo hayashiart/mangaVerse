@@ -1,0 +1,9 @@
+# Ignorer les dossiers node_modules
+node_modules/
+# Ignorer les fichiers de build
+dist/
+# Ignorer les images (scans et icônes)
+frontend/src/assets/images/*
+frontend/src/assets/icons/*
+# Ignorer fichiers sensibles
+backend/.env
