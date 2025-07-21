@@ -5,35 +5,60 @@ import { Link } from "react-router-dom";
 import Header from "../../components/common/Header";
 import Footer from "../../components/common/Footer";
 
-const BookmarksPage = styled.div`
+const BookmarksPage = styled.main`
   background-color: #182032;
   min-height: 100vh;
   padding: 20px;
+
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
 `;
 
-const BookmarksContainer = styled.div`
+const BookmarksContainer = styled.section`
   max-width: 1240px;
   margin: 80px auto 40px;
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    margin: 60px 10px 20px;
+  }
 `;
 
-const SectionTitle = styled.h2`
+const SectionTitle = styled.h1`
   font-family: "Montserrat", sans-serif;
   font-weight: bold;
   color: white;
   font-size: 24px;
   margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
 `;
 
 const MangaGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
 `;
 
-const MangaCard = styled.div`
+const MangaCard = styled.article`
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
 const MangaCover = styled.img`
@@ -41,6 +66,10 @@ const MangaCover = styled.img`
   height: 250px;
   border-radius: 10px;
   object-fit: cover;
+
+  @media (max-width: 768px) {
+    height: 180px;
+  }
 `;
 
 const MangaTitle = styled.h3`
@@ -49,6 +78,10 @@ const MangaTitle = styled.h3`
   font-size: 16px;
   margin-top: 10px;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
 `;
 
 const RemoveButton = styled.button`
@@ -61,8 +94,15 @@ const RemoveButton = styled.button`
   font-size: 14px;
   cursor: pointer;
   margin-top: 10px;
+
   &:hover {
     opacity: 0.8;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 12px;
   }
 `;
 
@@ -109,7 +149,7 @@ function Bookmarks() {
         <Header />
         <BookmarksContainer>
           <SectionTitle>Error</SectionTitle>
-          <p>{error}</p>
+          <p role="alert">{error}</p> {/* WCAG: Ajouté role="alert" pour accessibilité */}
         </BookmarksContainer>
         <Footer />
       </BookmarksPage>
@@ -117,7 +157,14 @@ function Bookmarks() {
   }
 
   return (
-    <BookmarksPage>
+    <BookmarksPage aria-label="Bookmarks page"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+      {/* Ajouter meta tags ici avec react-helmet si utilisé :
+      <Helmet>
+        <title>Bookmarks - MangaVerse</title>
+        <meta name="description" content="View and manage your bookmarked mangas on MangaVerse." />
+        <meta name="keywords" content="bookmarks, manga, favorites" />
+        <meta name="robots" content="index, follow" />
+      </Helmet> */}
       <Header />
       <BookmarksContainer>
         <SectionTitle>Bookmarks</SectionTitle>
@@ -125,14 +172,17 @@ function Bookmarks() {
           <MangaGrid>
             {bookmarks.map((manga) => (
               <MangaCard key={manga.id_book}>
-                <Link to={`/manga/${manga.title}`}>
+                <Link to={`/manga/${manga.title}`} aria-label={`View ${manga.title}`}> {/* WCAG: Ajouté aria-label pour accessibilité */}
                   <MangaCover
                     src={`http://localhost:5000/mangas/${manga.title}/cover${manga.title}.jpg`}
-                    alt={manga.title}
+                    alt={`${manga.title} cover`} // WCAG: Ajouté alt pour accessibilité
                   />
                 </Link>
                 <MangaTitle>{manga.title}</MangaTitle>
-                <RemoveButton onClick={() => handleRemoveBookmark(manga.id_book)}>
+                <RemoveButton
+                  onClick={() => handleRemoveBookmark(manga.id_book)}
+                  aria-label={`Remove ${manga.title} from bookmarks`} // WCAG: Ajouté aria-label pour accessibilité
+                >
                   Remove
                 </RemoveButton>
               </MangaCard>

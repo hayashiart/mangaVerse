@@ -2,6 +2,8 @@ import React from "react";
 import styled from "styled-components";
 import { useState } from "react";
 import axios from "axios";
+import Captcha from "./Captcha"; // Importe le composant CAPTCHA
+
 
 const PopupOverlay = styled.div`
   position: fixed;
@@ -24,6 +26,15 @@ const PopupBox = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  @media (max-width: 768px) {
+    width: 90%;
+    padding: 15px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    width: 350px;
+    padding: 18px;
+  }
 `;
 
 const PopupTitle = styled.h2`
@@ -31,12 +42,20 @@ const PopupTitle = styled.h2`
   font-weight: bold;
   color: white;
   margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    font-size: 22px;
+  }
 `;
 
 const Input = styled.input`
   background-color: #182032;
   border: none;
-  border-radius: 10px; /* Confirmé à 10px */
+  border-radius: 10px;
   padding: 10px 15px;
   color: white;
   font-family: "Lora", serif;
@@ -48,6 +67,16 @@ const Input = styled.input`
   &::placeholder {
     color: white;
     opacity: 0.5;
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    font-size: 12px;
+    width: 100%;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    padding: 9px 13px;
+    font-size: 13px;
   }
 `;
 
@@ -62,11 +91,19 @@ const ForgotPasswordLink = styled.a`
   &:hover {
     opacity: 0.8;
   }
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    font-size: 13px;
+  }
 `;
 
 const LoginButton = styled.button`
   background-color: #518cc7;
-  border-radius: 10px; /* Confirmé à 10px */
+  border-radius: 10px;
   border: none;
   padding: 10px 15px;
   font-family: "Lora", serif;
@@ -78,6 +115,16 @@ const LoginButton = styled.button`
 
   &:hover {
     opacity: 0.8;
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 100%;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    padding: 9px 13px;
+    font-size: 15px;
   }
 `;
 
@@ -96,6 +143,13 @@ const RegisterText = styled.p`
       opacity: 0.8;
     }
   }
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    font-size: 13px;
+  }
 `;
 
 const ErrorText = styled.p`
@@ -104,64 +158,114 @@ const ErrorText = styled.p`
   font-size: 14px;
   margin: 0 0 15px 0;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    font-size: 13px;
+  }
+`;
+
+const CaptchaInput = styled(Input)`
+  background-color: #f9f9f9; // Fond gris clair
+  border: 1px solid #d3d3d3; // Bordure légère
+  border-radius: 4px; // Coins arrondis
+  font-family: "Roboto", sans-serif; // Police Google
+  font-weight: bold; // Texte en gras
+  color: #333; // Texte sombre pour contraste
+  padding: 10px;
+  width: 150px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); // Ombre légère
+  &::placeholder { // Style spécifique pour le placeholder
+    color: #555; // Gris moyen pour le placeholder
+    opacity: 1; // Pleine opacité pour visibilité
+  }
+  @media (max-width: 768px) {
+    width: 120px;
+    padding: 8px;
+    font-size: 12px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    width: 130px;
+    padding: 9px;
+    font-size: 13px;
+  }
 `;
 
 function LoginPopup({ onClose, onRegisterClick }) {
-    // État pour stocker l'email, le mot de passe et les erreurs
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-  
-    // Fonction pour gérer la soumission du formulaire
-    const handleSubmit = async (e) => {
-      e.preventDefault(); // Empêche le rechargement de la page
-      try {
-        // Envoie la requête POST à /api/login avec email et password
-        const response = await axios.post("http://localhost:5000/api/login", {
-          email,
-          password,
-        });
-        // Stocke le JWT et le pseudo dans localStorage
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("pseudo", response.data.pseudo);
-        // Réinitialise l'erreur
-        setError("");
-        // Ferme la popup
-        onClose();
-      } catch (err) {
-        const errMsg = err.response?.data?.error || "Server error";
-  setError(errMsg);
-  alert("Login failed: " + errMsg); // Force alert visible
-  console.log("Login error:", err); // Log in F12 console
-      }
-    };
-  
-    return (
-      <PopupOverlay onClick={onClose}>
-        <PopupBox onClick={(e) => e.stopPropagation()}>
-          <PopupTitle>Login</PopupTitle>
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          {error && <ErrorText>{error}</ErrorText>} {/* Affiche l'erreur si elle existe */}
-          <ForgotPasswordLink>Forgot Your Password?</ForgotPasswordLink>
-          <LoginButton onClick={handleSubmit}>Login Now</LoginButton> {/* Appelle handleSubmit */}
-          <RegisterText>
-            Don't have an account?{" "}
-            <a onClick={onRegisterClick}>Register Now</a>
-          </RegisterText>
-        </PopupBox>
-      </PopupOverlay>
-    );
-  }
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [hasError, setHasError] = useState(false); // Indique si une erreur s'est produite
+  const [captcha, setCaptcha] = useState({ value: "", answer: "" }); // État pour stocker valeur et réponse
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Captcha:", captcha); // Vérifie la valeur de captcha
+    const isError = captcha.value !== captcha.answer.toString();
+    if (isError) {
+      setError("Incorrect CAPTCHA answer");
+      setHasError(true); // Signale une erreur
+      setTimeout(() => setHasError(false), 0); // Réinitialise après un court délai
+      return;
+    }
+    setHasError(false); // Réinitialise après succès
+    setError(""); // Efface l'erreur en cas de succès
+    try {
+      const response = await axios.post("http://localhost:5000/api/login", {
+        email,
+        password,
+      });
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("pseudo", response.data.pseudo);
+      setError("");
+      onClose();
+    } catch (err) {
+      const errMsg = err.response?.data?.error || "Server error";
+      setError(errMsg);
+      alert("Login failed: " + errMsg);
+      console.log("Login error:", err);
+    }
+  };
+
+  return (
+    <PopupOverlay onClick={onClose} aria-label="Login form overlay"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+      <PopupBox onClick={(e) => e.stopPropagation()} aria-label="Login form container"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+        <PopupTitle>Login to MangaVerse</PopupTitle>
+        <Input
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          aria-label="Email input for login" // WCAG: Ajouté aria-label pour accessibilité
+        />
+        <Input
+          type="password"
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          aria-label="Password input for login" // WCAG: Ajouté aria-label pour accessibilité
+        />
+        <Captcha onChange={(data) => setCaptcha(data)} hasError={hasError} />
+        {error && <ErrorText role="alert">{error}</ErrorText>} {/* WCAG: Ajouté role="alert" pour accessibilité */}
+        <ForgotPasswordLink aria-label="Forgot password link"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+          Forgot Your Password?
+        </ForgotPasswordLink>
+        <LoginButton onClick={handleSubmit} aria-label="Login button"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+          Login Now
+        </LoginButton>
+        <RegisterText>
+          Don't have an account?{" "}
+          <a onClick={onRegisterClick} aria-label="Register now link"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+            Register Now
+          </a>
+        </RegisterText>
+      </PopupBox>
+    </PopupOverlay>
+  );
+}
 
 export default LoginPopup;

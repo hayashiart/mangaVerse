@@ -1,4 +1,3 @@
-// Remplace tout le contenu de app.js
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
@@ -26,16 +25,19 @@ const contactRoutes = require("./routes/contact");
 const userRoutes = require("./routes/user");
 const authRoutes = require("./routes/auth");
 const mangaRoutes = require("./routes/manga");
+const booksRoutes = require("./routes/books"); // Vérifie que cette ligne est là
 
 // Remplace les app.use
 app.use("/api/favorites", favoriteRoutes); // Spécifique pour éviter conflits
 app.use("/api/bookmarks", bookmarkRoutes); // Spécifique pour éviter conflits
+app.use("/api/books", booksRoutes); // Vérifie que cette ligne est correcte
 app.use("/api", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api", mangaRoutes);
 app.use("/api", ratingRoutes);
 app.use("/api", reviewRoutes);
 app.use("/api", contactRoutes);
+console.log("Books routes loaded:", booksRoutes); // Ajoute ce log
 
 // Sert les dossiers statiques
 app.use(

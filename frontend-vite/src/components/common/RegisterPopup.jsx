@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { useState } from "react";
 import axios from "axios";
+import Captcha from "./Captcha"; // Importe le composant CAPTCHA
 
 const PopupOverlay = styled.div`
   position: fixed;
@@ -24,6 +25,15 @@ const PopupBox = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  @media (max-width: 768px) {
+    width: 90%;
+    padding: 15px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    width: 350px;
+    padding: 18px;
+  }
 `;
 
 const PopupTitle = styled.h2`
@@ -31,6 +41,14 @@ const PopupTitle = styled.h2`
   font-weight: bold;
   color: white;
   margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    font-size: 22px;
+  }
 `;
 
 const Input = styled.input`
@@ -41,13 +59,23 @@ const Input = styled.input`
   color: white;
   font-family: "Lora", serif;
   font-size: 14px;
-  width: 85%; /* Même largeur que LoginPopup */
+  width: 85%;
   margin-bottom: 15px;
   outline: none;
 
   &::placeholder {
     color: white;
     opacity: 0.5;
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    font-size: 12px;
+    width: 100%;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    padding: 9px 13px;
+    font-size: 13px;
   }
 `;
 
@@ -66,6 +94,16 @@ const RegisterButton = styled.button`
   &:hover {
     opacity: 0.8;
   }
+
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 100%;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    padding: 9px 13px;
+    font-size: 15px;
+  }
 `;
 
 const LoginText = styled.p`
@@ -83,97 +121,149 @@ const LoginText = styled.p`
       opacity: 0.8;
     }
   }
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    font-size: 13px;
+  }
 `;
 
-// Affiche les erreurs en rouge, centré, en police Lora
 const ErrorText = styled.p`
   font-family: "Lora", serif;
   color: red;
   font-size: 14px;
   margin: 0 0 15px 0;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    font-size: 13px;
+  }
 `;
 
-// Affiche le message de succès en vert, centré, en police Lora
 const SuccessText = styled.p`
   font-family: "Lora", serif;
-  color: #00ff00; /* Vert pour le succès */
+  color: #00ff00;
   font-size: 14px;
   margin: 0 0 15px 0;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    font-size: 13px;
+  }
+`;
+
+const CaptchaInput = styled(Input)`
+  background-color: #1b2335;
+  border: 2px solid #518cc7;
+  font-weight: bold;
+  @media (max-width: 768px) {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
 `;
 
 function RegisterPopup({ onClose, onLoginClick }) {
-    const [username, setUsername] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [hasError, setHasError] = useState(false); // Indique si une erreur s'est produite
+  const [captcha, setCaptcha] = useState({ value: "", answer: "" }); // État pour stocker valeur et réponse
 
-  // Fonction pour gérer la soumission du formulaire
+
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Empêche le rechargement de la page
-    // Vérifie que les mots de passe correspondent
-    if (password !== repeatPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+    e.preventDefault();
+console.log("Captcha:", captcha); // Vérifie la valeur de captcha
+const isError = password !== repeatPassword || captcha.value !== captcha.answer.toString();
+if (password !== repeatPassword) {
+  setError("Passwords do not match");
+  setHasError(true); // Signale une erreur
+  setTimeout(() => setHasError(false), 0); // Réinitialise après un court délai
+  return;
+}
+if (isError) {
+  setError("Incorrect CAPTCHA answer");
+  setHasError(true); // Signale une erreur
+  setTimeout(() => setHasError(false), 0); // Réinitialise après un court délai
+  return;
+}
+setHasError(false); // Réinitialise après succès
+setError(""); // Efface l'erreur en cas de succès
     try {
-      // Envoie la requête POST à /api/register avec username, email, password
       const response = await axios.post("http://localhost:5000/api/register", {
-        pseudo: username, // Utilise "pseudo" pour correspondre à l'API
+        pseudo: username,
         email,
         password,
       });
-      // Affiche le message de succès
       setSuccess("Inscription réussie !");
-      // Réinitialise l'erreur
       setError("");
-      // Ferme la popup après 2 secondes pour voir le message
       setTimeout(() => {
         onClose();
       }, 2000);
     } catch (err) {
-      // Affiche l'erreur renvoyée par le serveur ou un message par défaut
       setError(err.response?.data?.error || "Server error");
     }
   };
 
   return (
-    <PopupOverlay onClick={onClose}>
-      <PopupBox onClick={(e) => e.stopPropagation()}>
-        <PopupTitle>Create an account</PopupTitle>
+    <PopupOverlay onClick={onClose} aria-label="Registration form overlay"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+      <PopupBox onClick={(e) => e.stopPropagation()} aria-label="Registration form container"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+        <PopupTitle>Register for MangaVerse</PopupTitle>
         <Input
           type="text"
-          placeholder="Username"
-          value={username} // Lie l'input à l'état username
-          onChange={(e) => setUsername(e.target.value)} // Met à jour l'état username
+          placeholder="Enter your username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          aria-label="Username input for registration" // WCAG: Ajouté aria-label pour accessibilité
         />
         <Input
           type="email"
-          placeholder="Email"
-          value={email} // Lie l'input à l'état email
-          onChange={(e) => setEmail(e.target.value)} // Met à jour l'état email
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          aria-label="Email input for registration" // WCAG: Ajouté aria-label pour accessibilité
         />
         <Input
           type="password"
-          placeholder="Password"
-          value={password} // Lie l'input à l'état password
-          onChange={(e) => setPassword(e.target.value)} // Met à jour l'état password
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          aria-label="Password input for registration" // WCAG: Ajouté aria-label pour accessibilité
         />
         <Input
           type="password"
-          placeholder="Repeat Your Password"
-          value={repeatPassword} // Lie l'input à l'état repeatPassword
-          onChange={(e) => setRepeatPassword(e.target.value)} // Met à jour l'état repeatPassword
+          placeholder="Repeat your password"
+          value={repeatPassword}
+          onChange={(e) => setRepeatPassword(e.target.value)}
+          aria-label="Repeat password input for registration" // WCAG: Ajouté aria-label pour accessibilité
         />
-        {error && <ErrorText>{error}</ErrorText>}
-        {success && <SuccessText>{success}</SuccessText>}
-        <RegisterButton onClick={handleSubmit}>Register</RegisterButton>
+        <Captcha onChange={(data) => setCaptcha(data)} hasError={hasError} />
+        {error && <ErrorText role="alert">{error}</ErrorText>} {/* WCAG: Ajouté role="alert" pour accessibilité */}
+        {success && <SuccessText role="alert">{success}</SuccessText>} {/* WCAG: Ajouté role="alert" pour accessibilité */}
+        <RegisterButton onClick={handleSubmit} aria-label="Register button"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+          Register
+        </RegisterButton>
         <LoginText>
           Already have an account?{" "}
-          <a onClick={onLoginClick}>Login Now</a>
+          <a onClick={onLoginClick} aria-label="Login now link"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+            Login Now
+          </a>
         </LoginText>
       </PopupBox>
     </PopupOverlay>

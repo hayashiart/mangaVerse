@@ -6,6 +6,7 @@ import Profile from "./pages/Profile/Profile.jsx"; // Importe la page Profil
 import Favorites from "./pages/Favorites/Favorites";
 import Bookmarks from "./pages/Bookmarks/Bookmarks";
 import Reader from "./pages/Reader/Reader";
+import Admin from "./pages/Admin/Admin";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/bookmarks" element={<Bookmarks />} />
         <Route path="/manga/:title/:chapter" element={<Reader />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </Router>
   );

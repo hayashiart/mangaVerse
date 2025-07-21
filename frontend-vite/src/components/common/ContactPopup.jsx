@@ -1,11 +1,11 @@
-import React, { useState } from "react"; // Importe React et useState pour gérer les états (ex. champs du form)
-import styled from "styled-components"; // Importe styled pour les styles CSS-in-JS
-import axios from "axios"; // Importe axios pour envoyer la requête au backend (/api/contact)
+import React, { useState } from "react";
+import styled from "styled-components";
+import axios from "axios";
 
-const nameRegex = /^[A-Za-z\s]{2,}$/; // Regex for names: letters/spaces, min 2 chars
-const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/; // Regex for valid email
+const nameRegex = /^[A-Za-z\s]{2,}$/;
+const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
-const PopupOverlay = styled.div` // Overlay sombre pour la popup (comme fond obscurci)
+const PopupOverlay = styled.div`
   position: fixed;
   top: 0;
   left: 0;
@@ -18,7 +18,7 @@ const PopupOverlay = styled.div` // Overlay sombre pour la popup (comme fond obs
   z-index: 1000;
 `;
 
-const PopupBox = styled.div` // Box principale de la popup (fond #2f394f, comme Login/Register)
+const PopupBox = styled.div`
   background-color: #2f394f;
   border-radius: 10px;
   padding: 20px;
@@ -26,16 +26,33 @@ const PopupBox = styled.div` // Box principale de la popup (fond #2f394f, comme 
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  @media (max-width: 768px) {
+    width: 90%;
+    padding: 15px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    width: 350px;
+    padding: 18px;
+  }
 `;
 
-const PopupTitle = styled.h2` // Titre "Contact" (police Montserrat, blanc)
+const PopupTitle = styled.h2`
   font-family: "Montserrat", sans-serif;
   font-weight: bold;
   color: white;
   margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    font-size: 22px;
+  }
 `;
 
-const Input = styled.input` // Inputs standards (fond #182032, texte blanc)
+const Input = styled.input`
   background-color: #182032;
   border: none;
   border-radius: 10px;
@@ -51,9 +68,19 @@ const Input = styled.input` // Inputs standards (fond #182032, texte blanc)
     color: white;
     opacity: 0.5;
   }
+
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    font-size: 12px;
+    width: 100%;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    padding: 9px 13px;
+    font-size: 13px;
+  }
 `;
 
-const TextArea = styled.textarea` // Grosse input pour message (fond #182032, texte blanc, hauteur 100px)
+const TextArea = styled.textarea`
   background-color: #182032;
   border: none;
   border-radius: 10px;
@@ -70,9 +97,21 @@ const TextArea = styled.textarea` // Grosse input pour message (fond #182032, te
     color: white;
     opacity: 0.5;
   }
+
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    font-size: 12px;
+    width: 100%;
+    height: 80px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    padding: 9px 13px;
+    font-size: 13px;
+    height: 90px;
+  }
 `;
 
-const SendButton = styled.button` // Bouton "Send" (fond #518cc7, texte blanc)
+const SendButton = styled.button`
   background-color: #518cc7;
   border-radius: 10px;
   border: none;
@@ -86,110 +125,143 @@ const SendButton = styled.button` // Bouton "Send" (fond #518cc7, texte blanc)
   &:hover {
     opacity: 0.8;
   }
+
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 100%;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    padding: 9px 13px;
+    font-size: 15px;
+  }
 `;
 
-const ErrorText = styled.p` // Texte erreur en rouge
+const ErrorText = styled.p`
   font-family: "Lora", serif;
   color: red;
   font-size: 14px;
   margin: 0 0 15px 0;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    font-size: 13px;
+  }
 `;
 
-const SuccessText = styled.p` // Texte succès en vert
+const SuccessText = styled.p`
   font-family: "Lora", serif;
   color: green;
   font-size: 14px;
   margin: 0 0 15px 0;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    font-size: 13px;
+  }
 `;
 
 function ContactPopup({ onClose }) {
-    const [firstName, setFirstName] = useState(""); // État pour First Name (vide au départ)
-    const [lastName, setLastName] = useState(""); // État pour Last Name
-    const [email, setEmail] = useState(""); // État pour Email
-    const [subject, setSubject] = useState(""); // État pour Subject
-    const [message, setMessage] = useState(""); // État pour Message (gros input)
-    const [error, setError] = useState(""); // État pour erreurs (ex. champs vides)
-    const [success, setSuccess] = useState(""); // État pour message succès
-  
-    const handleSubmit = async (e) => { // Fonction appelée au clic "Send"
-      e.preventDefault(); // Empêche rechargement page
-      if (!nameRegex.test(firstName) || !nameRegex.test(lastName)) {
-        setError("Names must be letters only, min 2 chars");
-        return;
-      }
-      if (!emailRegex.test(email)) {
-        setError("Invalid email format");
-        return;
-      }
-      if (subject.length < 5) {
-        setError("Subject min 5 chars");
-        return;
-      }
-      if (message.length < 10) {
-        setError("Message min 10 chars");
-        return;
-      }
-      if (!firstName || !lastName || !email || !subject || !message) { // Vérifie si tous les champs remplis
-        setError("All fields required");
-        return;
-      }
-      try {
-        await axios.post("http://localhost:5000/api/contact", { // Envoie à /api/contact (Firebase)
-          first_name: firstName,
-          last_name: lastName,
-          email,
-          subject,
-          message,
-        });
-        setSuccess("Message sent!"); // Succès
-        setError(""); // Efface erreur
-        setTimeout(onClose, 2000); // Ferme popup après 2s pour voir succès
-      } catch (err) {
-        setError(err.response?.data?.error || "Server error"); // Affiche erreur backend
-      }
-    };
-  
-    return (
-      <PopupOverlay onClick={onClose}>
-        <PopupBox onClick={(e) => e.stopPropagation()}>
-          <PopupTitle>Contact</PopupTitle>
-          <Input
-  type="text"
-  placeholder="First Name"
-  value={firstName} // Lie à l'état
-  onChange={(e) => setFirstName(e.target.value)} // Met à jour l'état
-/>
-<Input
-  type="text"
-  placeholder="Last Name"
-  value={lastName}
-  onChange={(e) => setLastName(e.target.value)}
-/>
-<Input
-  type="email"
-  placeholder="Email"
-  value={email}
-  onChange={(e) => setEmail(e.target.value)}
-/>
-<Input
-  type="text"
-  placeholder="Subject"
-  value={subject}
-  onChange={(e) => setSubject(e.target.value)}
-/>
-<TextArea
-  placeholder="Type your message"
-  value={message}
-  onChange={(e) => setMessage(e.target.value)}
-/>
-{error && <ErrorText>{error}</ErrorText>}
-{success && <SuccessText>{success}</SuccessText>} 
-<SendButton onClick={handleSubmit}>Send</SendButton>
-        </PopupBox>
-      </PopupOverlay>
-    );
-  }
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!nameRegex.test(firstName) || !nameRegex.test(lastName)) {
+      setError("Names must be letters only, min 2 chars");
+      return;
+    }
+    if (!emailRegex.test(email)) {
+      setError("Invalid email format");
+      return;
+    }
+    if (subject.length < 5) {
+      setError("Subject min 5 chars");
+      return;
+    }
+    if (message.length < 10) {
+      setError("Message min 10 chars");
+      return;
+    }
+    if (!firstName || !lastName || !email || !subject || !message) {
+      setError("All fields required");
+      return;
+    }
+    try {
+      await axios.post("http://localhost:5000/api/contact", {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        subject,
+        message,
+      });
+      setSuccess("Message sent!");
+      setError("");
+      setTimeout(onClose, 2000);
+    } catch (err) {
+      setError(err.response?.data?.error || "Server error");
+    }
+  };
+
+  return (
+    <PopupOverlay onClick={onClose} aria-label="Contact form overlay"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+      <PopupBox onClick={(e) => e.stopPropagation()} aria-label="Contact form container"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+        <PopupTitle>Contact Us</PopupTitle>
+        <Input
+          type="text"
+          placeholder="First Name"
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          aria-label="First name input" // WCAG: Ajouté aria-label pour accessibilité
+        />
+        <Input
+          type="text"
+          placeholder="Last Name"
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+          aria-label="Last name input" // WCAG: Ajouté aria-label pour accessibilité
+        />
+        <Input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          aria-label="Email input" // WCAG: Ajouté aria-label pour accessibilité
+        />
+        <Input
+          type="text"
+          placeholder="Subject"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          aria-label="Subject input" // WCAG: Ajouté aria-label pour accessibilité
+        />
+        <TextArea
+          placeholder="Type your message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          aria-label="Message input" // WCAG: Ajouté aria-label pour accessibilité
+        />
+        {error && <ErrorText role="alert">{error}</ErrorText>} {/* WCAG: Ajouté role="alert" pour accessibilité */}
+        {success && <SuccessText role="alert">{success}</SuccessText>} {/* WCAG: Ajouté role="alert" pour accessibilité */}
+        <SendButton onClick={handleSubmit} aria-label="Send contact message"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+          Send
+        </SendButton>
+      </PopupBox>
+    </PopupOverlay>
+  );
+}
 
 export default ContactPopup;

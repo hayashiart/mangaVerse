@@ -1,178 +1,209 @@
-// Crée ce fichier avec ce contenu
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
-import axios from "axios";
 import Header from "../../components/common/Header";
 import Footer from "../../components/common/Footer";
+import { StyleSheetManager } from "styled-components";
+import isPropValid from "@emotion/is-prop-valid";
+import UsersAdmin from "./UsersAdmin";
+import Books from "./Books";
+import { createGlobalStyle } from "styled-components";
 
-const AdminPage = styled.div`
+// Ajoute après les imports
+const GlobalStyle = createGlobalStyle`
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+`;
+
+const AdminPage = styled.main`
   background-color: #182032;
-  min-height: 100vh;
-  padding: 20px;
-`;
-
-const AdminContainer = styled.div`
-  max-width: 800px;
-  margin: 80px auto;
-  color: white;
-`;
-
-const UserList = styled.ul`
-  list-style: none;
-  padding: 0;
-`;
-
-const UserItem = styled.li`
-  display: flex;
-  justify-content: space-between;
-  padding: 10px;
-  background-color: #2f3b55;
-  margin-bottom: 10px;
-  border-radius: 5px;
-`;
-
-const Form = styled.form`
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
 `;
 
-const Input = styled.input`
-  padding: 10px;
-  border-radius: 5px;
-  border: none;
+const MainContent = styled.div`
+  display: flex;
+  flex-direction: row;
+  max-width: 1200px;
+  width: 100%;
+  margin: 40px auto 0;
+  flex-grow: 1;
+  min-height: 0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    margin: 20px auto;
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    margin: 30px auto;
+  }
 `;
 
-const Button = styled.button`
-  padding: 10px;
-  background-color: #518cc7;
+const Sidebar = styled.nav`
+  width: 250px;
+  background-color: #2f3b55;
+  border-radius: 10px;
+  padding: 20px;
+  margin-right: 20px;
+  flex-shrink: 0;
+  height: fit-content;
+  max-height: 80vh;
+  overflow-y: auto;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 20px;
+    padding: 15px;
+    max-height: 60vh;
+  }
+`;
+
+const SidebarTitle = styled.h2`
+  font-family: "Montserrat", sans-serif;
+  font-weight: bold;
   color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
 `;
+
+const MenuItem = styled.button`
+  background: none;
+  border: none;
+  color: white;
+  font-family: "Lora", serif;
+  font-size: 16px;
+  text-align: left;
+  padding: 10px;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 5px;
+
+  &:hover {
+    background-color: #518cc7;
+  }
+  ${({ active }) => active && `background-color: #518cc7;`}
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    padding: 8px;
+  }
+`;
+
+const Content = styled.section`
+  flex: 1;
+  background-color: #2f3b55;
+  border-radius: 10px;
+  padding: 20px;
+  color: white;
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    padding: 15px;
+    border-radius: 8px;
+  }
+`;
+
+const StyledHeader = styled(Header)`
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
+`;
+
+const StyledFooter = styled(Footer)`
+  max-width: 1200px;
+  width: 100%;
+  margin: 10px auto 0;
+  padding-top: 5px;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    padding: 5px;
+    margin: 5px auto;
+  }
+`;
+
+const shouldForwardProp = (prop) => isPropValid(prop) && !prop.startsWith("$");
 
 function Admin() {
-  const [users, setUsers] = useState([]);
-  const [newUser, setNewUser] = useState({ pseudo: "", email: "", password: "", role: "user" });
-  const [error, setError] = useState("");
+  const [activeSection, setActiveSection] = useState("Users");
 
-  useEffect(() => {
-    async function fetchUsers() {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/api/users", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUsers(response.data);
-        setError("");
-      } catch (err) {
-        setError(err.response?.data?.error || "Error fetching users");
-      }
-    }
-    fetchUsers();
-  }, []);
-
-  const handleAddUser = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post("http://localhost:5000/api/users", newUser, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setNewUser({ pseudo: "", email: "", password: "", role: "user" });
-      fetchUsers();
-    } catch (err) {
-      setError(err.response?.data?.error || "Error adding user");
-    }
+  const handleSectionChange = (section) => {
+    setActiveSection(section);
   };
-
-  const handleEditUser = async (id, updatedUser) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.put(`http://localhost:5000/api/users/${id}`, updatedUser, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchUsers();
-    } catch (err) {
-      setError(err.response?.data?.error || "Error editing user");
-    }
-  };
-
-  const handleDeleteUser = async (id) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/users/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchUsers();
-    } catch (err) {
-      setError(err.response?.data?.error || "Error deleting user");
-    }
-  };
-
-  if (error) {
-    return (
-      <AdminPage>
-        <Header />
-        <AdminContainer>
-          <h2>Error</h2>
-          <p>{error}</p>
-        </AdminContainer>
-        <Footer />
-      </AdminPage>
-    );
-  }
 
   return (
-    <AdminPage>
-      <Header />
-      <AdminContainer>
-        <h2>Manage Users</h2>
-        <Form onSubmit={handleAddUser}>
-          <Input
-            type="text"
-            placeholder="Pseudo"
-            value={newUser.pseudo}
-            onChange={(e) => setNewUser({ ...newUser, pseudo: e.target.value })}
-          />
-          <Input
-            type="email"
-            placeholder="Email"
-            value={newUser.email}
-            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-          />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={newUser.password}
-            onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-          />
-          <Input
-            type="text"
-            placeholder="Role (user/admin/librarian)"
-            value={newUser.role}
-            onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-          />
-          <Button type="submit">Add User</Button>
-        </Form>
-        <UserList>
-          {users.map((user) => (
-            <UserItem key={user.id_user}>
-              <span>{user.pseudo} ({user.email}) - {user.role}</span>
-              <div>
-                <Button onClick={() => handleEditUser(user.id_user, { ...user, role: user.role === "user" ? "admin" : "user" })}>
-                  Toggle Role
-                </Button>
-                <Button onClick={() => handleDeleteUser(user.id_user)}>Delete</Button>
-              </div>
-            </UserItem>
-          ))}
-        </UserList>
-      </AdminContainer>
-      <Footer />
-    </AdminPage>
+    <>
+      <GlobalStyle />
+      {/* Ajouter meta tags ici avec react-helmet si utilisé :
+      <Helmet>
+        <title>Admin Panel - MangaVerse</title>
+        <meta name="description" content="Manage users, books, and more on the MangaVerse admin panel." />
+        <meta name="keywords" content="admin, manga, management, users" />
+        <meta name="robots" content="index, follow" />
+      </Helmet> */}
+      <StyleSheetManager shouldForwardProp={shouldForwardProp}>
+        <AdminPage aria-label="Admin management panel"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+          <StyledHeader />
+          <MainContent>
+            <Sidebar aria-label="Admin navigation menu"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+              <SidebarTitle>MangaVerse Administration</SidebarTitle>
+              <MenuItem active={activeSection === "Users"} onClick={() => handleSectionChange("Users")} aria-label="Navigate to Users section"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+                Users
+              </MenuItem>
+              <MenuItem active={activeSection === "Books"} onClick={() => handleSectionChange("Books")} aria-label="Navigate to Books section"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+                Books
+              </MenuItem>
+              <MenuItem active={activeSection === "Categories"} onClick={() => handleSectionChange("Categories")} aria-label="Navigate to Categories section"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+                Categories
+              </MenuItem>
+              <MenuItem active={activeSection === "Tags"} onClick={() => handleSectionChange("Tags")} aria-label="Navigate to Tags section"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+                Tags
+              </MenuItem>
+              <MenuItem active={activeSection === "Authors"} onClick={() => handleSectionChange("Authors")} aria-label="Navigate to Authors section"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+                Authors
+              </MenuItem>
+              <MenuItem active={activeSection === "Reviews"} onClick={() => handleSectionChange("Reviews")} aria-label="Navigate to Reviews section"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+                Reviews
+              </MenuItem>
+              <MenuItem active={activeSection === "Contacts"} onClick={() => handleSectionChange("Contacts")} aria-label="Navigate to Contacts section"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+                Contacts
+              </MenuItem>
+            </Sidebar>
+            <Content>
+              {activeSection === "Users" ? (
+                <UsersAdmin />
+              ) : activeSection === "Books" ? (
+                <Books />
+              ) : (
+                <>
+                  <h2>{activeSection} Management</h2>
+                  <p>Coming soon...</p>
+                </>
+              )}
+            </Content>
+          </MainContent>
+          <StyledFooter />
+        </AdminPage>
+      </StyleSheetManager>
+    </>
   );
 }
 
