@@ -16,6 +16,7 @@
     "express": "^4.21.2",
     "firebase-admin": "^13.4.0",
     "jsonwebtoken": "^9.0.2",
+    "mkcert": "^3.2.0",
     "multer": "^2.0.1",
     "mysql2": "^3.14.1"
   }

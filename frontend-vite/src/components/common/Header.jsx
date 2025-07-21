@@ -387,12 +387,13 @@ setUserRole(null); // Réinitialise le rôle
       const token = Cookies.get("session_token");
       if (!token) return;
       try {
-        const response = await axios.get("http://localhost:5000/api/user", {
+        console.log("Token for photo:", token);
+        const response = await axios.get("https://localhost:5000/api/user", {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (response.data.profile_photo) {
-          setProfilePhoto(`http://localhost:5000${response.data.profile_photo}`);
-          localStorage.setItem("profile_photo", `http://localhost:5000${response.data.profile_photo}`);
+          setProfilePhoto(`https://localhost:5000${response.data.profile_photo}`);
+          localStorage.setItem("profile_photo", `https://localhost:5000${response.data.profile_photo}`);
         }
       } catch (err) {
         console.error("Error fetching user photo:", err);
@@ -405,8 +406,9 @@ setUserRole(null); // Réinitialise le rôle
     async function fetchUserRole() {
       try {
         const token = Cookies.get("session_token");
+        console.log("Token for role:", token);
         if (!token) return;
-        const response = await axios.get("http://localhost:5000/api/user", {
+        const response = await axios.get("https://localhost:5000/api/user", {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log("User role response:", response.data.role);
@@ -421,7 +423,7 @@ setUserRole(null); // Réinitialise le rôle
   useEffect(() => {
     const handleStorageChange = () => {
       const photo = localStorage.getItem("profile_photo");
-      if (photo) setProfilePhoto(photo.startsWith("http") ? photo : `http://localhost:5000${photo}`);
+      if (photo) setProfilePhoto(photo.startsWith("https") ? photo : `https://localhost:5000${photo}`);
     };
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);

@@ -5,6 +5,7 @@ const app = express();
 const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
+const https = require('https');
 
 const admin = require("firebase-admin");
 const serviceAccount = require("./mangaverse-e07e3-firebase-adminsdk-fbsvc-c807ab9231.json");
@@ -14,7 +15,10 @@ admin.initializeApp({
 });
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'https://localhost:1234', // Ajuste selon le port de ton frontend (ex. 1234 si Vite)
+  credentials: true // Permet l'envoi de cookies
+}));
 
 // Importe toutes les routes
 const favoriteRoutes = require("./routes/favorites");
@@ -52,6 +56,10 @@ app.use(
 );
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+const options = {
+  key: fs.readFileSync('./localhost-key.pem'),
+  cert: fs.readFileSync('./localhost.pem')
+};
+https.createServer(options, app).listen(PORT, () => {
+  console.log(`HTTPS server running on port ${PORT}`);
 });

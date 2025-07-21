@@ -182,12 +182,12 @@ function Profile() {
       const token = Cookies.get("session_token");
       if (!token) return alert("Please login");
       try {
-        const response = await axios.get("http://localhost:5000/api/user", {
+        const response = await axios.get("https://localhost:5000/api/user", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUsername(response.data.pseudo);
         setEmail(response.data.email);
-        if (response.data.profile_photo) setProfilePhoto(`http://localhost:5000${response.data.profile_photo}`);
+        if (response.data.profile_photo) setProfilePhoto(`https://localhost:5000${response.data.profile_photo}`);
       } catch (err) {
         console.error("Error fetching user:", err);
       }
@@ -215,7 +215,7 @@ function Profile() {
     const token = Cookies.get("session_token");
     if (!token) return alert("Please login");
     try {
-      await axios.put("http://localhost:5000/api/user/update", {
+      await axios.put("https://localhost:5000/api/user/update", {
         pseudo: username,
         email,
         password: newPassword
@@ -242,12 +242,12 @@ function Profile() {
       const formData = new FormData();
       formData.append("photo", blob, "cropped.jpg");
       try {
-        const response = await axios.post("http://localhost:5000/api/user/upload-photo", formData, {
+        const response = await axios.post("https://localhost:5000/api/user/upload-photo", formData, {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" }
         });
         console.log("Upload response:", response.data);
-        setProfilePhoto(`http://localhost:5000${response.data.url}`);
-        localStorage.setItem("profile_photo", `http://localhost:5000${response.data.url}`);
+        setProfilePhoto(`https://localhost:5000${response.data.url}`);
+        localStorage.setItem("profile_photo", `https://localhost:5000${response.data.url}`);
         setImageSrc(null);
         setSelectedFile(null);
       } catch (err) {

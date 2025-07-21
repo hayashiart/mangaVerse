@@ -247,7 +247,7 @@ function Home() {
   useEffect(() => {
     async function fetchMangas() {
       try {
-        const response = await axios.get("http://localhost:5000/api/mangas");
+        const response = await axios.get("https://localhost:5000/api/mangas");
         setMostViewed(getRandomItems(response.data, 4));
         setMangas(response.data);
         setError("");
@@ -275,7 +275,7 @@ function Home() {
           {mostViewed.map((manga, idx) => (
             <Link key={idx} to={`/manga/${manga.name}`} aria-label={`View ${manga.name}`}> {/* WCAG: Ajouté aria-label pour accessibilité */}
               <div key={idx}>
-                <MangaCover src={`http://localhost:5000${manga.cover}`} alt={`${manga.name} cover`} /> {/* WCAG: Ajouté alt pour accessibilité */}
+                <MangaCover src={`https://localhost:5000${manga.cover}`} alt={`${manga.name} cover`} /> {/* WCAG: Ajouté alt pour accessibilité */}
                 <Notch>
                   <MangaName>{manga.name}</MangaName>
                 </Notch>

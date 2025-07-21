@@ -119,7 +119,7 @@ function Bookmarks() {
           setError("Please login to view bookmarks");
           return;
         }
-        const response = await axios.get("http://localhost:5000/api/bookmarks", {
+        const response = await axios.get("https://localhost:5000/api/bookmarks", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setBookmarks(response.data);
@@ -134,7 +134,7 @@ function Bookmarks() {
   const handleRemoveBookmark = async (book_id) => {
     try {
       const token = Cookies.get("session_token");
-      await axios.delete(`http://localhost:5000/api/bookmarks/remove/${book_id}`, {
+      await axios.delete(`https://localhost:5000/api/bookmarks/remove/${book_id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setBookmarks(bookmarks.filter((bm) => bm.id_book !== book_id));
@@ -175,7 +175,7 @@ function Bookmarks() {
               <MangaCard key={manga.id_book}>
                 <Link to={`/manga/${manga.title}`} aria-label={`View ${manga.title}`}> {/* WCAG: Ajouté aria-label pour accessibilité */}
                   <MangaCover
-                    src={`http://localhost:5000/mangas/${manga.title}/cover${manga.title}.jpg`}
+                    src={`https://localhost:5000/mangas/${manga.title}/cover${manga.title}.jpg`}
                     alt={`${manga.title} cover`} // WCAG: Ajouté alt pour accessibilité
                   />
                 </Link>

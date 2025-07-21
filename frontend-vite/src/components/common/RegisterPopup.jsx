@@ -5,6 +5,8 @@ import axios from "axios";
 import Captcha from "./Captcha"; // Importe le composant CAPTCHA
 import Cookies from "js-cookie";
 
+axios.defaults.withCredentials = true;
+
 const PopupOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -207,13 +209,22 @@ if (isError) {
 setHasError(false); // Réinitialise après succès
 setError(""); // Efface l'erreur en cas de succès
     try {
-      const response = await axios.post("http://localhost:5000/api/register", {
+      const response = await axios.post("https://localhost:5000/api/register", {
         pseudo: username,
         email,
         password,
       });
-      Cookies.set("session_token", response.data.token, { expires: 7 });
-Cookies.set("user_pseudo", username, { expires: 7 });
+      console.log("API response:", response.data);
+      setTimeout(() => {
+        Cookies.set("session_token", response.data.token, { expires: 7, httpOnly: false, secure: true, sameSite: 'strict' });
+        Cookies.set("user_pseudo", username, { expires: 7, httpOnly: false, secure: true, sameSite: 'strict' });
+        console.log("Cookies créés après délai:", Cookies.get("session_token"), Cookies.get("user_pseudo"));
+        setSuccess("Inscription réussie !");
+        setError("");
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+      }, 0);
 setSuccess("Inscription réussie !");
       setError("");
       setTimeout(() => {

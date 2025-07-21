@@ -116,7 +116,7 @@ function Books() {
   const fetchBooks = async () => {
     try {
         const token = Cookies.get("session_token");
-      const response = await axios.get("http://localhost:5000/api/books", {
+      const response = await axios.get("https://localhost:5000/api/books", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBooks(response.data);
@@ -146,7 +146,7 @@ function Books() {
     try {
         const token = Cookies.get("session_token");
       console.log("Data sent to API:", { title: newBook.title, description: newBook.description, views: newBook.views });
-      const response = await axios.post("http://localhost:5000/api/books", formData, {
+      const response = await axios.post("https://localhost:5000/api/books", formData, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
       });
       console.log("Book added:", response.data);
@@ -221,7 +221,7 @@ function Books() {
         onClick={async () => {
           try {
             const token = Cookies.get("session_token");
-            const originalBooks = await axios.get("http://localhost:5000/api/books", {
+            const originalBooks = await axios.get("https://localhost:5000/api/books", {
               headers: { Authorization: `Bearer ${token}` },
             }).then(res => res.data);
             const updatedBooks = books.filter(book => {
@@ -229,7 +229,7 @@ function Books() {
               return original && (book.title !== original.title || book.description !== original.description || book.views !== original.views);
             });
             for (const book of updatedBooks) {
-              await axios.put(`http://localhost:5000/api/books/${book.id}`, book, {
+              await axios.put(`https://localhost:5000/api/books/${book.id}`, book, {
                 headers: { Authorization: `Bearer ${token}` },
               });
             }

@@ -201,7 +201,7 @@ function ContactPopup({ onClose }) {
       return;
     }
     try {
-      await axios.post("http://localhost:5000/api/contact", {
+      await axios.post("https://localhost:5000/api/contact", {
         first_name: firstName,
         last_name: lastName,
         email,

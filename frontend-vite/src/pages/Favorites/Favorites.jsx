@@ -119,7 +119,7 @@ function Favorites() {
           setError("Please login to view favorites");
           return;
         }
-        const response = await axios.get("http://localhost:5000/api/favorites", {
+        const response = await axios.get("https://localhost:5000/api/favorites", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setFavorites(response.data);
@@ -134,7 +134,7 @@ function Favorites() {
   const handleRemoveFavorite = async (book_id) => {
     try {
       const token = Cookies.get("session_token");
-      await axios.delete(`http://localhost:5000/api/favorites/remove/${book_id}`, {
+      await axios.delete(`https://localhost:5000/api/favorites/remove/${book_id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFavorites(favorites.filter((fav) => fav.id_book !== book_id));
@@ -175,7 +175,7 @@ function Favorites() {
               <MangaCard key={manga.id_book}>
                 <Link to={`/manga/${manga.title}`} aria-label={`View ${manga.title}`}> {/* WCAG: Ajouté aria-label pour accessibilité */}
                   <MangaCover
-                    src={`http://localhost:5000/mangas/${manga.title}/cover${manga.title}.jpg`}
+                    src={`https://localhost:5000/mangas/${manga.title}/cover${manga.title}.jpg`}
                     alt={`${manga.title} cover`} // WCAG: Ajouté alt pour accessibilité
                   />
                 </Link>

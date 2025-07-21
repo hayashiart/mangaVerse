@@ -116,8 +116,8 @@ function UsersAdmin() {
     try {
         const token = Cookies.get("session_token");
         console.log("Fetching users with token:", token);
-        console.log("API URL:", "http://localhost:5000/api/users");
-      const response = await axios.get("http://localhost:5000/api/users", {
+        console.log("API URL:", "https://localhost:5000/api/users");
+      const response = await axios.get("https://localhost:5000/api/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(response.data);
@@ -143,7 +143,7 @@ function UsersAdmin() {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
         const token = Cookies.get("session_token");
-        await axios.delete(`http://localhost:5000/api/users/${id}`, {
+        await axios.delete(`https://localhost:5000/api/users/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUsers(users.filter(u => u.id_user !== id));
@@ -312,7 +312,7 @@ function UsersAdmin() {
                 return;
               }
               const token = Cookies.get("session_token");
-              const response = await axios.post("http://localhost:5000/api/users", newUser, {
+              const response = await axios.post("https://localhost:5000/api/users", newUser, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               await fetchUsers();
@@ -330,7 +330,7 @@ function UsersAdmin() {
         onClick={async () => {
           try {
             const token = Cookies.get("session_token");
-            const originalUsers = await axios.get("http://localhost:5000/api/users", {
+            const originalUsers = await axios.get("https://localhost:5000/api/users", {
               headers: { Authorization: `Bearer ${token}` },
             }).then(res => res.data);
             const updatedUsers = users.filter(user => {
@@ -338,7 +338,7 @@ function UsersAdmin() {
               return original && (user.pseudo !== original.pseudo || user.email !== original.email || user.role !== original.role);
             });
             for (const user of updatedUsers) {
-              await axios.put(`http://localhost:5000/api/users/${user.id_user}`, user, {
+              await axios.put(`https://localhost:5000/api/users/${user.id_user}`, user, {
                 headers: { Authorization: `Bearer ${token}` },
               });
             }

@@ -6,6 +6,8 @@ import Header from "../../components/common/Header";
 import Footer from "../../components/common/Footer";
 import { Link } from "react-router-dom";
 import Cookies from "js-cookie";
+import DOMPurify from 'dompurify';
+
 
 const GlobalStyle = styled.div`
   background-color: #182032;
@@ -402,12 +404,12 @@ function MangaPage() {
       const token = Cookies.get("session_token");
       if (!token) return alert("Please login first");
       await axios.post(
-        "http://localhost:5000/api/reviews/add",
+        "https://localhost:5000/api/reviews/add",
         { book_id: manga.id_book, rating },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setUserRating(rating);
-      const response = await axios.get(`http://localhost:5000/api/manga/${title}`);
+      const response = await axios.get(`https://localhost:5000/api/manga/${title}`);
       setManga(response.data.manga);
     } catch (err) {
       alert(err.response?.data?.error || "Error adding rating");
@@ -419,15 +421,16 @@ function MangaPage() {
     try {
       const token = Cookies.get("session_token");
       if (!token) return alert("Please login first");
-      await axios.post(
-        "http://localhost:5000/api/reviews",
-        { book_id: manga.id_book, comment: newComment, parent_id: replyTo },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const sanitizedComment = DOMPurify.sanitize(newComment);
+await axios.post(
+  "https://localhost:5000/api/reviews",
+  { book_id: manga.id_book, comment: sanitizedComment, parent_id: replyTo },
+  { headers: { Authorization: `Bearer ${Cookies.get("session_token")}` } }
+);
       setNewComment("");
       setReplyTo(null);
       setReplyInputs(prev => ({ ...prev, [replyTo]: false }));
-      const response = await axios.get(`http://localhost:5000/api/reviews/${manga.id_book}`);
+      const response = await axios.get(`https://localhost:5000/api/reviews/${manga.id_book}`);
       setComments(buildCommentTree(response.data));
     } catch (err) {
       alert(err.response?.data?.error || "Error adding comment");
@@ -453,14 +456,14 @@ function MangaPage() {
   useEffect(() => {
     async function fetchManga() {
       try {
-        const response = await axios.get(`http://localhost:5000/api/manga/${title}`);
+        const response = await axios.get(`https://localhost:5000/api/manga/${title}`);
         setManga(response.data.manga);
         setChapters(response.data.chapters || [{ id_chapter: 1, chapter_number: 1 }]);
         setError("");
         if (response.data.manga?.id_book) {
           const fetchComments = async () => {
             try {
-              const commentResponse = await axios.get(`http://localhost:5000/api/reviews/${response.data.manga.id_book}`);
+              const commentResponse = await axios.get(`https://localhost:5000/api/reviews/${response.data.manga.id_book}`);
               setComments(buildCommentTree(commentResponse.data));
             } catch (err) {
               console.error("Error fetching comments:", err);
@@ -471,10 +474,10 @@ function MangaPage() {
               const token = Cookies.get("session_token");
               if (token) {
                 const [favResponse, bookmarkResponse] = await Promise.all([
-                  axios.get(`http://localhost:5000/api/favorites/${response.data.manga.id_book}`, {
+                  axios.get(`https://localhost:5000/api/favorites/${response.data.manga.id_book}`, {
                     headers: { Authorization: `Bearer ${token}` }
                   }),
-                  axios.get(`http://localhost:5000/api/bookmarks/${response.data.manga.id_book}`, {
+                  axios.get(`https://localhost:5000/api/bookmarks/${response.data.manga.id_book}`, {
                     headers: { Authorization: `Bearer ${token}` }
                   })
                 ]);
@@ -500,14 +503,14 @@ function MangaPage() {
       const token = Cookies.get("session_token");
       if (!token) return alert("Please login first");
       if (isFavorite) {
-        await axios.delete(`http://localhost:5000/api/favorites/remove/${manga.id_book}`, {
+        await axios.delete(`https://localhost:5000/api/favorites/remove/${manga.id_book}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setIsFavorite(false);
         alert("Removed from favorites");
       } else {
         await axios.post(
-          "http://localhost:5000/api/favorites/add",
+          "https://localhost:5000/api/favorites/add",
           { book_id: manga.id_book },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -524,14 +527,14 @@ function MangaPage() {
       const token = Cookies.get("session_token");
       if (!token) return alert("Please login first");
       if (isBookmarked) {
-        await axios.delete(`http://localhost:5000/api/bookmarks/remove/${manga.id_book}`, {
+        await axios.delete(`https://localhost:5000/api/bookmarks/remove/${manga.id_book}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setIsBookmarked(false);
         alert("Removed from bookmarks");
       } else {
         await axios.post(
-          "http://localhost:5000/api/bookmarks/add",
+          "https://localhost:5000/api/bookmarks/add",
           { book_id: manga.id_book },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -552,7 +555,7 @@ function MangaPage() {
           <MangaHeader aria-label={`Manga page for ${manga.title}`}>
             <CoverContainer>
               <MangaCover
-                src={`http://localhost:5000/mangas/${manga.title}/cover${manga.title}.jpg`}
+                src={`https://localhost:5000/mangas/${manga.title}/cover${manga.title}.jpg`}
                 alt={`${manga.title} cover image`} // WCAG: Ajouté alt descriptif
               />
               <RatingBox>

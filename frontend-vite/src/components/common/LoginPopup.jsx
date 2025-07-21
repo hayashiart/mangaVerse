@@ -4,6 +4,8 @@ import axios from "axios";
 import Captcha from "./Captcha"; // Importe le composant CAPTCHA
 import Cookies from "js-cookie";
 
+axios.defaults.withCredentials = true;
+
 
 const PopupOverlay = styled.div`
   position: fixed;
@@ -215,13 +217,18 @@ function LoginPopup({ onClose, onRegisterClick }) {
     setHasError(false); // Réinitialise après succès
     setError(""); // Efface l'erreur en cas de succès
     try {
-      const response = await axios.post("http://localhost:5000/api/login", {
+      const response = await axios.post("https://localhost:5000/api/login", {
         email,
         password,
       });
-      Cookies.set("session_token", response.data.token, { expires: 7 }); // Crée un cookie pour le token, valide 7 jours
-  Cookies.set("user_pseudo", response.data.pseudo, { expires: 7 });
-  console.log("Cookies créés:", Cookies.get("session_token"), Cookies.get("user_pseudo"));
+      console.log("API response:", response.data);
+      setTimeout(() => {
+        Cookies.set("session_token", response.data.token, { expires: 7, httpOnly: false, secure: true, sameSite: 'strict' });
+        Cookies.set("user_pseudo", response.data.pseudo, { expires: 7, httpOnly: false, secure: true, sameSite: 'strict' });
+        console.log("Cookies créés après délai:", Cookies.get("session_token"), Cookies.get("user_pseudo"));
+        setError("");
+        onClose();
+      }, 0);
       setError("");
       onClose();
     } catch (err) {

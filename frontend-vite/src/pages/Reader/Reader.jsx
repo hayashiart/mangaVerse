@@ -60,8 +60,8 @@ function Reader() {
   useEffect(() => {
     async function fetchChapterImages() {
       try {
-        const response = await axios.get(`http://localhost:5000/api/manga/${title}/${chapter}/images`);
-        setImages(response.data.images.map(url => `http://localhost:5000${url}`));
+        const response = await axios.get(`https://localhost:5000/api/manga/${title}/${chapter}/images`);
+        setImages(response.data.images.map(url => `https://localhost:5000${url}`));
         setError("");
       } catch (err) {
         setError(err.response?.data?.error || "Error loading chapter images");
