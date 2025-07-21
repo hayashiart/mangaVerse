@@ -4,6 +4,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import Header from "../../components/common/Header";
 import Footer from "../../components/common/Footer";
+import Cookies from "js-cookie";
 
 const BookmarksPage = styled.main`
   background-color: #182032;
@@ -113,7 +114,7 @@ function Bookmarks() {
   useEffect(() => {
     async function fetchBookmarks() {
       try {
-        const token = localStorage.getItem("token");
+        const token = Cookies.get("session_token");
         if (!token) {
           setError("Please login to view bookmarks");
           return;
@@ -132,7 +133,7 @@ function Bookmarks() {
 
   const handleRemoveBookmark = async (book_id) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = Cookies.get("session_token");
       await axios.delete(`http://localhost:5000/api/bookmarks/remove/${book_id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });

@@ -115,7 +115,7 @@ function Books() {
 
   const fetchBooks = async () => {
     try {
-      const token = localStorage.getItem("token");
+        const token = Cookies.get("session_token");
       const response = await axios.get("http://localhost:5000/api/books", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -144,7 +144,7 @@ function Books() {
     formData.append("coverImage", coverImage);
 
     try {
-      const token = localStorage.getItem("token");
+        const token = Cookies.get("session_token");
       console.log("Data sent to API:", { title: newBook.title, description: newBook.description, views: newBook.views });
       const response = await axios.post("http://localhost:5000/api/books", formData, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
@@ -220,7 +220,7 @@ function Books() {
       <SaveButton
         onClick={async () => {
           try {
-            const token = localStorage.getItem("token");
+            const token = Cookies.get("session_token");
             const originalBooks = await axios.get("http://localhost:5000/api/books", {
               headers: { Authorization: `Bearer ${token}` },
             }).then(res => res.data);

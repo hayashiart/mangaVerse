@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { useState } from "react";
 import axios from "axios";
 import Captcha from "./Captcha"; // Importe le composant CAPTCHA
+import Cookies from "js-cookie";
 
 
 const PopupOverlay = styled.div`
@@ -219,8 +219,9 @@ function LoginPopup({ onClose, onRegisterClick }) {
         email,
         password,
       });
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("pseudo", response.data.pseudo);
+      Cookies.set("session_token", response.data.token, { expires: 7 }); // Crée un cookie pour le token, valide 7 jours
+  Cookies.set("user_pseudo", response.data.pseudo, { expires: 7 });
+  console.log("Cookies créés:", Cookies.get("session_token"), Cookies.get("user_pseudo"));
       setError("");
       onClose();
     } catch (err) {

@@ -5,6 +5,7 @@ import axios from "axios";
 import Header from "../../components/common/Header";
 import Footer from "../../components/common/Footer";
 import { Link } from "react-router-dom";
+import Cookies from "js-cookie";
 
 const GlobalStyle = styled.div`
   background-color: #182032;
@@ -398,7 +399,7 @@ function MangaPage() {
 
   const handleStarClick = async (rating) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = Cookies.get("session_token");
       if (!token) return alert("Please login first");
       await axios.post(
         "http://localhost:5000/api/reviews/add",
@@ -416,7 +417,7 @@ function MangaPage() {
   const handleAddComment = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
+      const token = Cookies.get("session_token");
       if (!token) return alert("Please login first");
       await axios.post(
         "http://localhost:5000/api/reviews",
@@ -467,7 +468,7 @@ function MangaPage() {
           };
           const fetchFavoritesAndBookmarks = async () => {
             try {
-              const token = localStorage.getItem("token");
+              const token = Cookies.get("session_token");
               if (token) {
                 const [favResponse, bookmarkResponse] = await Promise.all([
                   axios.get(`http://localhost:5000/api/favorites/${response.data.manga.id_book}`, {
@@ -496,7 +497,7 @@ function MangaPage() {
 
   const handleAddFavorite = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = Cookies.get("session_token");
       if (!token) return alert("Please login first");
       if (isFavorite) {
         await axios.delete(`http://localhost:5000/api/favorites/remove/${manga.id_book}`, {
@@ -520,7 +521,7 @@ function MangaPage() {
 
   const handleAddBookmark = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = Cookies.get("session_token");
       if (!token) return alert("Please login first");
       if (isBookmarked) {
         await axios.delete(`http://localhost:5000/api/bookmarks/remove/${manga.id_book}`, {

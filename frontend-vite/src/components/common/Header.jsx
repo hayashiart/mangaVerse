@@ -10,6 +10,7 @@ import arrowIconSrc from "~/assets/icons/png/flecheBlancDroit.png";
 import userIconSrc from "~/assets/icons/png/usersWhite.png";
 import ContactPopup from "./ContactPopup";
 import axios from "axios";
+import Cookies from "js-cookie";
 
 // Configuration pour filtrer les props non-DOM
 const shouldForwardProp = (prop) => isPropValid(prop) && !prop.startsWith("$");
@@ -343,14 +344,12 @@ function Header() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
-  const pseudo = localStorage.getItem("pseudo");
 
   const [profilePhoto, setProfilePhoto] = useState(localStorage.getItem("profile_photo") || userIconSrc);
   const [isBurgerOpen, setIsBurgerOpen] = useState(false);
   const burgerRef = useRef(null);
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState(null);
-  
 
   const handleLoginClick = () => {
     setIsLoginOpen(true);
@@ -376,14 +375,16 @@ function Header() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("pseudo");
+    Cookies.remove("session_token");
+    Cookies.remove("user_pseudo");
+    setProfilePhoto(userIconSrc); // Réinitialise la photo de profil
+setUserRole(null); // Réinitialise le rôle
     setIsBurgerOpen(false);
   };
 
   useEffect(() => {
     async function fetchUserPhoto() {
-      const token = localStorage.getItem("token");
+      const token = Cookies.get("session_token");
       if (!token) return;
       try {
         const response = await axios.get("http://localhost:5000/api/user", {
@@ -403,11 +404,12 @@ function Header() {
   useEffect(() => {
     async function fetchUserRole() {
       try {
-        const token = localStorage.getItem("token");
+        const token = Cookies.get("session_token");
         if (!token) return;
         const response = await axios.get("http://localhost:5000/api/user", {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log("User role response:", response.data.role);
         setUserRole(response.data.role);
       } catch (err) {
         console.error("Error fetching user role:", err);
@@ -439,13 +441,16 @@ function Header() {
     };
   }, [isBurgerOpen]);
 
+  const isAuthenticated = !!Cookies.get("session_token");
+const userPseudo = Cookies.get("user_pseudo") || "";
+
   return (
     <StyleSheetManager shouldForwardProp={shouldForwardProp}>
       <div>
         <HeaderContainer>
           <LogoAndNav>
-            <Logo src={logoSrc} alt="MangaVerse logo" /> {/* WCAG: Ajouté alt pour accessibilité */}
-            <BurgerButton onClick={handleBurgerClick} aria-label="Toggle burger menu"> {/* WCAG: Ajouté aria-label pour accessibilité */}
+            <Logo src={logoSrc} alt="MangaVerse logo" />
+            <BurgerButton onClick={handleBurgerClick} aria-label="Toggle burger menu">
               ☰
             </BurgerButton>
             <NavLinks>
@@ -456,26 +461,26 @@ function Header() {
           </LogoAndNav>
           <RightSection>
             <SearchBar>
-              <SearchIcon src={searchIconSrc} alt="Search icon" /> {/* WCAG: Ajouté alt pour accessibilité */}
+              <SearchIcon src={searchIconSrc} alt="Search icon" />
               <SearchInput
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search manga..."
-                aria-label="Search manga input" // WCAG: Ajouté aria-label pour accessibilité
+                aria-label="Search manga input"
               />
             </SearchBar>
-            {pseudo ? (
-              <UserButton onClick={handleBurgerClick} aria-label="Open user menu"> {/* WCAG: Ajouté aria-label pour accessibilité */}
-                <UserIcon src={profilePhoto} alt="User profile photo" /> {/* WCAG: Ajouté alt pour accessibilité */}
-                {pseudo}
-              </UserButton>
-            ) : (
-              <LoginButton onClick={handleLoginClick} aria-label="Open login popup"> {/* WCAG: Ajouté aria-label pour accessibilité */}
-                Login
-                <ArrowIcon src={arrowIconSrc} alt="Arrow right icon" /> {/* WCAG: Ajouté alt pour accessibilité */}
-              </LoginButton>
-            )}
+            {isAuthenticated ? (
+  <UserButton onClick={handleBurgerClick} aria-label="Open user menu">
+    <UserIcon src={profilePhoto} alt="User profile photo" />
+    {userPseudo}
+  </UserButton>
+) : (
+  <LoginButton onClick={handleLoginClick} aria-label="Open login popup">
+    Login
+    <ArrowIcon src={arrowIconSrc} alt="Arrow right icon" />
+  </LoginButton>
+)}
           </RightSection>
         </HeaderContainer>
         <BurgerMenu $isOpen={isBurgerOpen} ref={burgerRef}>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import Cookies from "js-cookie";
 
 const UserTable = styled.table`
   width: 100%;
@@ -113,7 +114,9 @@ function UsersAdmin() {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem("token");
+        const token = Cookies.get("session_token");
+        console.log("Fetching users with token:", token);
+        console.log("API URL:", "http://localhost:5000/api/users");
       const response = await axios.get("http://localhost:5000/api/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -121,6 +124,7 @@ function UsersAdmin() {
       setError("");
     } catch (err) {
       setError(err.response?.data?.error || "Error fetching users");
+      console.error("Fetch users error:", err.message, err.response?.status, err.response?.data);
     }
   };
 
@@ -138,7 +142,7 @@ function UsersAdmin() {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
-        const token = localStorage.getItem("token");
+        const token = Cookies.get("session_token");
         await axios.delete(`http://localhost:5000/api/users/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -160,115 +164,113 @@ function UsersAdmin() {
         <meta name="robots" content="index, follow" />
       </Helmet> */}
       <h1>Manage Users</h1>
-      <UserTable aria-label="Users table"> {/* WCAG: Ajouté aria-label pour accessibilité */}
-        <thead>
-          <tr>
-            <TableHeader>Select</TableHeader>
-            <TableHeader>ID</TableHeader>
-            <TableHeader>Pseudo</TableHeader>
-            <TableHeader>Email</TableHeader>
-            <TableHeader>Role</TableHeader>
-            <TableHeader>Actions</TableHeader>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <TableRow key={user.id_user}>
-              <TableCell>
-                <Checkbox
-                  type="checkbox"
-                  checked={selectedUsers.includes(user.id_user)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedUsers([...selectedUsers, user.id_user]);
-                    } else {
-                      setSelectedUsers(selectedUsers.filter(id => id !== user.id_user));
-                    }
-                  }}
-                  aria-label={`Select user ${user.pseudo}`} // WCAG: Ajouté aria-label pour accessibilité
-                />
-              </TableCell>
-              <TableCell>
-                {editUserId === user.id_user ? (
-                  <input
-                    style={{ padding: "5px", border: "1px solid #518cc7", borderRadius: "5px", width: "50px" }}
-                    value={user.id_user || ""}
-                    disabled
-                  />
-                ) : (
-                  user.id_user || ""
-                )}
-              </TableCell>
-              <TableCell>
-                {editUserId === user.id_user ? (
-                  <input
-                    style={{ padding: "5px", border: "1px solid #518cc7", borderRadius: "5px" }}
-                    value={user.pseudo || ""}
-                    onChange={(e) => {
-                      const updatedUser = { ...user, pseudo: e.target.value };
-                      handleEdit(updatedUser);
-                    }}
-                    aria-label="Edit pseudo" // WCAG: Ajouté aria-label pour accessibilité
-                  />
-                ) : (
-                  user.pseudo || ""
-                )}
-              </TableCell>
-              <TableCell>
-                {editUserId === user.id_user ? (
-                  <input
-                    style={{ padding: "5px", border: "1px solid #518cc7", borderRadius: "5px" }}
-                    value={user.email || ""}
-                    onChange={(e) => {
-                      const updatedUser = { ...user, email: e.target.value };
-                      handleEdit(updatedUser);
-                    }}
-                    aria-label="Edit email" // WCAG: Ajouté aria-label pour accessibilité
-                  />
-                ) : (
-                  user.email || ""
-                )}
-              </TableCell>
-              <TableCell>
-                {editUserId === user.id_user ? (
-                  <select
-                    style={{ padding: "5px", border: "1px solid #518cc7", borderRadius: "5px" }}
-                    value={user.role || "user"}
-                    onChange={(e) => {
-                      const updatedUser = { ...user, role: e.target.value };
-                      handleEdit(updatedUser);
-                    }}
-                    aria-label="Edit role" // WCAG: Ajouté aria-label pour accessibilité
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                    <option value="librarian">Librarian</option>
-                  </select>
-                ) : (
-                  user.role || "user"
-                )}
-              </TableCell>
-              <TableCell>
-                <button
-                  ref={menuRef}
-                  onClick={() => setEditUserId(editUserId === user.id_user ? null : user.id_user)}
-                  style={{ background: "none", border: "none", cursor: "pointer", marginRight: "10px" }}
-                  aria-label="Edit user button" // WCAG: Ajouté aria-label pour accessibilité
-                >
-                  <FaEdit color="#518CC7" />
-                </button>
-                <button
-                  onClick={() => handleDelete(user.id_user)}
-                  style={{ background: "none", border: "none", cursor: "pointer" }}
-                  aria-label="Delete user button" // WCAG: Ajouté aria-label pour accessibilité
-                >
-                  <FaTrash color="#ff4444" />
-                </button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </tbody>
-      </UserTable>
+      <UserTable aria-label="Users table">
+  <thead>
+    <tr>
+      <TableHeader>Select</TableHeader>
+      <TableHeader>ID</TableHeader>
+      <TableHeader>Pseudo</TableHeader>
+      <TableHeader>Email</TableHeader>
+      <TableHeader>Role</TableHeader>
+      <TableHeader>Actions</TableHeader>
+    </tr>
+  </thead>
+  <tbody>{users.map((user) => (
+    <TableRow key={user.id_user}>
+      <TableCell>
+        <Checkbox
+          type="checkbox"
+          checked={selectedUsers.includes(user.id_user)}
+          onChange={(e) => {
+            if (e.target.checked) {
+              setSelectedUsers([...selectedUsers, user.id_user]);
+            } else {
+              setSelectedUsers(selectedUsers.filter(id => id !== user.id_user));
+            }
+          }}
+          aria-label={`Select user ${user.pseudo}`} // WCAG: Ajouté aria-label pour accessibilité
+        />
+      </TableCell>
+      <TableCell>
+        {editUserId === user.id_user ? (
+          <input
+            style={{ padding: "5px", border: "1px solid #518cc7", borderRadius: "5px", width: "50px" }}
+            value={user.id_user || ""}
+            disabled
+          />
+        ) : (
+          user.id_user || ""
+        )}
+      </TableCell>
+      <TableCell>
+        {editUserId === user.id_user ? (
+          <input
+            style={{ padding: "5px", border: "1px solid #518cc7", borderRadius: "5px" }}
+            value={user.pseudo || ""}
+            onChange={(e) => {
+              const updatedUser = { ...user, pseudo: e.target.value };
+              handleEdit(updatedUser);
+            }}
+            aria-label="Edit pseudo" // WCAG: Ajouté aria-label pour accessibilité
+          />
+        ) : (
+          user.pseudo || ""
+        )}
+      </TableCell>
+      <TableCell>
+        {editUserId === user.id_user ? (
+          <input
+            style={{ padding: "5px", border: "1px solid #518cc7", borderRadius: "5px" }}
+            value={user.email || ""}
+            onChange={(e) => {
+              const updatedUser = { ...user, email: e.target.value };
+              handleEdit(updatedUser);
+            }}
+            aria-label="Edit email" // WCAG: Ajouté aria-label pour accessibilité
+          />
+        ) : (
+          user.email || ""
+        )}
+      </TableCell>
+      <TableCell>
+        {editUserId === user.id_user ? (
+          <select
+            style={{ padding: "5px", border: "1px solid #518cc7", borderRadius: "5px" }}
+            value={user.role || "user"}
+            onChange={(e) => {
+              const updatedUser = { ...user, role: e.target.value };
+              handleEdit(updatedUser);
+            }}
+            aria-label="Edit role" // WCAG: Ajouté aria-label pour accessibilité
+          >
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+            <option value="librarian">Librarian</option>
+          </select>
+        ) : (
+          user.role || "user"
+        )}
+      </TableCell>
+      <TableCell>
+        <button
+          ref={menuRef}
+          onClick={() => setEditUserId(editUserId === user.id_user ? null : user.id_user)}
+          style={{ background: "none", border: "none", cursor: "pointer", marginRight: "10px" }}
+          aria-label="Edit user button" // WCAG: Ajouté aria-label pour accessibilité
+        >
+          <FaEdit color="#518CC7" />
+        </button>
+        <button
+          onClick={() => handleDelete(user.id_user)}
+          style={{ background: "none", border: "none", cursor: "pointer" }}
+          aria-label="Delete user button" // WCAG: Ajouté aria-label pour accessibilité
+        >
+          <FaTrash color="#ff4444" />
+        </button>
+      </TableCell>
+    </TableRow>
+  ))}</tbody>
+</UserTable>
       <AddUserForm>
         <input
           style={{ padding: "5px", marginRight: "10px", border: "1px solid #518cc7", borderRadius: "5px" }}
@@ -309,7 +311,7 @@ function UsersAdmin() {
                 console.error("All fields are required");
                 return;
               }
-              const token = localStorage.getItem("token");
+              const token = Cookies.get("session_token");
               const response = await axios.post("http://localhost:5000/api/users", newUser, {
                 headers: { Authorization: `Bearer ${token}` },
               });
@@ -327,7 +329,7 @@ function UsersAdmin() {
       <SaveButton
         onClick={async () => {
           try {
-            const token = localStorage.getItem("token");
+            const token = Cookies.get("session_token");
             const originalUsers = await axios.get("http://localhost:5000/api/users", {
               headers: { Authorization: `Bearer ${token}` },
             }).then(res => res.data);

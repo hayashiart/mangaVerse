@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { useState } from "react";
 import axios from "axios";
 import Captcha from "./Captcha"; // Importe le composant CAPTCHA
+import Cookies from "js-cookie";
 
 const PopupOverlay = styled.div`
   position: fixed;
@@ -211,7 +212,9 @@ setError(""); // Efface l'erreur en cas de succès
         email,
         password,
       });
-      setSuccess("Inscription réussie !");
+      Cookies.set("session_token", response.data.token, { expires: 7 });
+Cookies.set("user_pseudo", username, { expires: 7 });
+setSuccess("Inscription réussie !");
       setError("");
       setTimeout(() => {
         onClose();

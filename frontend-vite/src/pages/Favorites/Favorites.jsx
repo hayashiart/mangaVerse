@@ -4,6 +4,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import Header from "../../components/common/Header";
 import Footer from "../../components/common/Footer";
+import Cookies from "js-cookie";
 
 const FavoritesPage = styled.main`
   background-color: #182032;
@@ -113,7 +114,7 @@ function Favorites() {
   useEffect(() => {
     async function fetchFavorites() {
       try {
-        const token = localStorage.getItem("token");
+        const token = Cookies.get("session_token");
         if (!token) {
           setError("Please login to view favorites");
           return;
@@ -132,7 +133,7 @@ function Favorites() {
 
   const handleRemoveFavorite = async (book_id) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = Cookies.get("session_token");
       await axios.delete(`http://localhost:5000/api/favorites/remove/${book_id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });

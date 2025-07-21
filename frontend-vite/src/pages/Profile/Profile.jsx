@@ -5,6 +5,7 @@ import Header from "../../components/common/Header"; // Importe Header
 import Footer from "../../components/common/Footer"; // Importe Footer
 import userIconSrc from "~/assets/icons/png/usersWhite.png"; // Image default pour profil
 import Cropper from "react-cropper";
+import Cookies from "js-cookie";
 
 const ProfilePage = styled.div`
   background-color: #252F45;
@@ -178,7 +179,7 @@ function Profile() {
 
   useEffect(() => {
     async function fetchUser() {
-      const token = localStorage.getItem("token");
+      const token = Cookies.get("session_token");
       if (!token) return alert("Please login");
       try {
         const response = await axios.get("http://localhost:5000/api/user", {
@@ -211,7 +212,7 @@ function Profile() {
       setError("Password min 6 chars");
       return;
     }
-    const token = localStorage.getItem("token");
+    const token = Cookies.get("session_token");
     if (!token) return alert("Please login");
     try {
       await axios.put("http://localhost:5000/api/user/update", {
@@ -230,7 +231,7 @@ function Profile() {
 
   const handleUpload = async () => {
     if (!cropper) return alert("Choose and adjust an image first");
-    const token = localStorage.getItem("token");
+    const token = Cookies.get("session_token");
     if (!token) return alert("Please login");
     console.log("Upload attempt with cropped image, token:", token);
     const croppedCanvas = cropper.getCroppedCanvas({
