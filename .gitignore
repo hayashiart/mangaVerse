@@ -12,4 +12,7 @@ dist/
 
 # Logs/Cache
 *.log
-npm-debug.log*
+npm-debug.log*node_modules/
+.env
+.env.*
+dist/
