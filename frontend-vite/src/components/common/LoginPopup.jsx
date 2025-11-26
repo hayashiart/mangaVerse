@@ -225,12 +225,14 @@ function LoginPopup({ onClose, onRegisterClick }) {
       setTimeout(() => {
         Cookies.set("session_token", response.data.token, { expires: 7, httpOnly: false, secure: true, sameSite: 'strict' });
         Cookies.set("user_pseudo", response.data.pseudo, { expires: 7, httpOnly: false, secure: true, sameSite: 'strict' });
+        Cookies.set("user_role", response.data.role, { expires: 7,  httpOnly: false, secure: true, sameSite: 'strict' });
         console.log("Cookies créés après délai:", Cookies.get("session_token"), Cookies.get("user_pseudo"));
         setError("");
         onClose();
       }, 0);
       setError("");
       onClose();
+      window.location.reload();
     } catch (err) {
       const errMsg = err.response?.data?.error || "Server error";
       setError(errMsg);

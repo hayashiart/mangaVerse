@@ -1,41 +1,20 @@
+USE mangaverse_db;
+
 -- Catégories
-INSERT INTO Categories (name) VALUES
-('Shonen'), ('Shojo'), ('Seinen'), ('Comics'), ('European Comics');
+INSERT INTO Categories (name) VALUES ('Shonen'), ('Shojo'), ('Seinen'), ('Comics'), ('European Comics');
 
--- Utilisateurs
-INSERT INTO Users (pseudo, email, password) VALUES
-('narutoFan', 'user1@gmail.com', 'password123!'),
-('sailorMoonLover', 'user2@gmail.com', 'password123!'),
-('berserkKing', 'user3@gmail.com', 'password123!');
+-- LES 3 COMPTES – MOT DE PASSE Seb12345! (hash généré sur TA machine)
+INSERT INTO Users (pseudo, email, password, role) VALUES
+('Sebastien',  'user@gmail.com',        '$2b$10$qllJ7NzbLDMW/Ad/DhEPMuYGMs9/K1808Dxejht6cX0XlFara4FqW', 'user'),
+('Admin',      'admin@gmail.com',       '$2b$10$qllJ7NzbLDMW/Ad/DhEPMuYGMs9/K1808Dxejht6cX0XlFara4FqW', 'admin'),
+('Librarian',  'librarian@gmail.com',   '$2b$10$qllJ7NzbLDMW/Ad/DhEPMuYGMs9/K1808Dxejht6cX0XlFara4FqW', 'librarian');
 
--- Administrateurs
-INSERT INTO Administrators (email, password) VALUES
-('admin1@gmail.com', 'password123!'), ('admin2@gmail.com', 'password123!');
+-- Quelques mangas
+INSERT INTO Authors (name) VALUES ('Masashi Kishimoto'), ('Naoko Takeuchi'), ('Kentaro Miura');
 
--- Bibliothécaires
-INSERT INTO Librarians (email, password) VALUES
-('librarian1@gmail.com', 'password123!'), ('librarian2@gmail.com', 'password123!');
-
--- Tags
-INSERT INTO Tags (name) VALUES
-('Action'), ('Romance'), ('Fantasy'), ('Horror'), ('Adventure');
-
--- Auteurs
-INSERT INTO Authors (name, biography) VALUES
-('Masashi Kishimoto', 'Creator of Naruto, known for epic ninja tales.'),
-('Naoko Takeuchi', 'Creator of Sailor Moon, a legend of Shojo.'),
-('Kentaro Miura', 'Author of Berserk, master of dark fantasy.'),
-('Stan Lee', 'Legend of comics, co-creator of Spider-Man.'),
-('Hergé', 'Creator of Tintin, icon of European comics.');
-
--- Livres
 INSERT INTO Books (title, description, cover_image, views, category_id) VALUES
-('Naruto', 'The story of a determined ninja aiming to become Hokage.', 'default_cover.jpg', 1000, 1),
-('Sailor Moon', 'A magical girl saga.', 'sailor_moon_cover.jpg', 800, 2),
-('Berserk', 'A dark fantasy epic.', 'berserk_cover.jpg', 1200, 3);
+('Naruto',      'Un jeune ninja qui rêve de devenir Hokage',         'naruto.jpg',     1500, 1),
+('Sailor Moon', 'Des lycéennes qui se transforment en guerrières',   'sailormoon.jpg', 1200, 2),
+('Berserk',     'L’épopée sombre de Guts et Griffith',               'berserk.jpg',    2000, 3);
 
--- Relations
-INSERT INTO Book_Tags (book_id, tag_id) VALUES
-(1, 1), (1, 3), (2, 2), (3, 3);
-INSERT INTO Book_Authors (book_id, author_id) VALUES
-(1, 1), (2, 2), (3, 3);
+INSERT INTO Book_Authors (book_id, author_id) VALUES (1,1),(2,2),(3,3);

@@ -1,253 +1,500 @@
-import React, { useState, useEffect } from "react";
+// src/pages/Admin/Books.jsx → VERSION FINALE 100% (titre bloqué si chapitres existants)
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
-import { FaPlus } from "react-icons/fa";
+import Cookies from "js-cookie";
 
-const AddBookForm = styled.form`
-  margin-top: 20px;
-  display: flex;
-  gap: 10px;
-  align-items: flex-end;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 15px;
-  }
+const Container = styled.div`
+  padding: 30px;
+  color: white;
+  min-height: 100vh;
+  background: #182032;
 `;
 
-const BooksTable = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  max-height: 400px;
-  overflow-y: auto;
-  display: block;
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+`;
 
-  @media (max-width: 768px) {
-    overflow-x: auto;
-    width: 100%;
-    -webkit-overflow-scrolling: touch;
-    font-size: 14px;
-  }
-  @media (min-width: 769px) and (max-width: 1024px) {
-    max-height: 300px;
-  }
+const Title = styled.h2`
+  font-family: "Montserrat", sans-serif;
+  font-size: 28px;
+  margin: 0;
+  font-weight: bold;
 `;
 
 const AddButton = styled.button`
-  background-color: #518CC7;
+  background: #518cc7;
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 20px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 16px;
   cursor: pointer;
+  transition: all 0.2s;
 
   &:hover {
-    opacity: 0.8;
-  }
-
-  @media (max-width: 768px) {
-    width: 100%;
-    padding: 8px 15px;
-    font-size: 14px;
+    opacity: 0.9;
+    transform: translateY(-2px);
   }
 `;
 
-const SaveButton = styled.button`
-  background-color: #518CC7;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 20px;
-  cursor: pointer;
-  margin-top: 20px;
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 30px;
+  min-height: 400px;
+`;
+
+const Card = styled.div`
+  background: #2f3b55;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
 
   &:hover {
-    opacity: 0.8;
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
   }
+`;
 
-  @media (max-width: 768px) {
-    width: 100%;
-    padding: 8px 15px;
-    font-size: 14px;
+const CoverLink = styled.div`
+  cursor: pointer;
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.03);
   }
+`;
+
+const Cover = styled.img`
+  width: 100%;
+  height: 360px;
+  object-fit: cover;
+  background: #182032;
+  display: block;
+`;
+
+const Info = styled.div`
+  padding: 20px;
+`;
+
+const MangaTitle = styled.h3`
+  margin: 0 0 10px 0;
+  font-family: "Montserrat", sans-serif;
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const Category = styled.p`
+  margin: 8px 0;
+  opacity: 0.9;
+  font-size: 14px;
+`;
+
+const Tags = styled.p`
+  margin: 10px 0;
+  font-size: 13px;
+  color: #a0d8ff;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const Actions = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-top: 15px;
+`;
+
+const Btn = styled.button`
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+`;
+
+const EditBtn = styled(Btn)`
+  background: #518cc7;
+  color: white;
+`;
+
+const DeleteBtn = styled(Btn)`
+  background: #c75151;
+  color: white;
+`;
+
+const Pagination = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 60px;
+  flex-wrap: wrap;
+`;
+
+const PageBtn = styled.button`
+  background: ${(props) => (props.active ? "#518cc7" : "#2f3b55")};
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 44px;
+  font-weight: bold;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+// Modal
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+`;
+
+const Modal = styled.div`
+  background: #2f394f;
+  padding: 40px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
 `;
 
 const Input = styled.input`
-  padding: 5px;
-  border: 1px solid #518cc7;
-  border-radius: 5px;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    margin-bottom: 10px;
-  }
+  width: 100%;
+  padding: 14px;
+  margin: 12px 0;
+  background: #182032;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 16px;
 `;
 
-const TableHeader = styled.th`
-  padding: 10px;
-  text-align: left;
-  border-bottom: 1px solid #ffffff33;
-`;
-
-const TableRow = styled.tr`
-  &:nth-child(even) {
-    background-color: #1b2335;
-  }
-`;
-
-const TableCell = styled.td`
-  padding: 10px;
-  border-bottom: 1px solid #ffffff33;
+const TextArea = styled.textarea`
+  width: 100%;
+  height: 120px;
+  padding: 14px;
+  margin: 12px 0;
+  background: #182032;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  resize: vertical;
 `;
 
 const Select = styled.select`
-  padding: 5px;
-  border: 1px solid #518cc7;
-  border-radius: 5px;
+  width: 100%;
+  padding: 14px;
+  margin: 12px 0;
+  background: #182032;
+  border: none;
+  border-radius: 10px;
+  color: white;
 `;
 
-function Books() {
-  const [books, setBooks] = useState([]);
-  const [error, setError] = useState("");
-  const [newBook, setNewBook] = useState({ title: "", description: "", views: 0 });
-  const [coverImage, setCoverImage] = useState(null);
+ const TagInput = styled.input`
+  width: 100%;
+  padding: 14px;
+  margin: 12px 0;
+  background: #182032;
+  border: none;
+  border-radius: 10px;
+  color: white;
+`;
 
-  const fetchBooks = async () => {
-    try {
-        const token = Cookies.get("session_token");
-      const response = await axios.get("https://localhost:5000/api/books", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setBooks(response.data);
-      setError("");
-    } catch (err) {
-      setError(err.response?.data?.error || "Error fetching books");
-    }
-  };
+const ITEMS_PER_PAGE = 12;
+
+export default function Books() {
+  const navigate = useNavigate();
+  const [books, setBooks] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isOpen, setIsOpen] = useState(false);
+  const [editingBook, setEditingBook] = useState(null);
+  const [canEditTitle, setCanEditTitle] = useState(true); // ← NOUVEAU
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    category_id: "",
+    tags: "",
+    coverImage: null,
+  });
+
+  const token = Cookies.get("session_token");
 
   useEffect(() => {
     fetchBooks();
+    fetchCategories();
   }, []);
 
-  const handleAddBook = async (e) => {
-    e.preventDefault();
-    if (!newBook.title || !newBook.description || !coverImage) {
-      console.error("Title, description, and cover image are required");
-      return;
+  const fetchBooks = async () => {
+    try {
+      const res = await axios.get("https://localhost:5000/api/books", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setBooks(res.data);
+      setCurrentPage(1);
+    } catch (err) {
+      console.error("Erreur chargement mangas:", err);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get("https://localhost:5000/api/categories");
+      setCategories(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const totalPages = Math.ceil(books.length / ITEMS_PER_PAGE);
+  const paginatedBooks = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return books.slice(start, start + ITEMS_PER_PAGE);
+  }, [books, currentPage]);
+
+  const handleEdit = async (book) => {
+    setEditingBook(book);
+    setForm({
+      title: book.title,
+      description: book.description || "",
+      category_id: book.category_id || "",
+      tags: book.tags || "",
+      coverImage: null,
+    });
+
+    // Vérifie s’il y a déjà des chapitres → si oui, on bloque le titre
+    try {
+      const res = await axios.get(
+        `https://localhost:5000/api/chapters/list/${book.id_book}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setCanEditTitle(res.data.length === 0);
+    } catch (err) {
+      setCanEditTitle(true); // En cas d'erreur, on autorise
     }
 
+    setIsOpen(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     const formData = new FormData();
-    formData.append("title", newBook.title);
-    formData.append("description", newBook.description);
-    formData.append("views", newBook.views);
-    formData.append("coverImage", coverImage);
+    formData.append("title", form.title.trim());
+    formData.append("description", form.description);
+    formData.append("category_id", form.category_id || "");
+    formData.append("tags", JSON.stringify(form.tags.split(",").map(t => t.trim()).filter(Boolean)));
+    if (form.coverImage) formData.append("coverImage", form.coverImage);
 
     try {
-        const token = Cookies.get("session_token");
-      console.log("Data sent to API:", { title: newBook.title, description: newBook.description, views: newBook.views });
-      const response = await axios.post("https://localhost:5000/api/books", formData, {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
-      });
-      console.log("Book added:", response.data);
-      await fetchBooks();
-      setNewBook({ title: "", description: "", views: 0 });
-      setCoverImage(null);
+      if (editingBook) {
+        await axios.put(`https://localhost:5000/api/books/${editingBook.id}`, formData, {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        await axios.post("https://localhost:5000/api/books", formData, {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+        });
+      }
+      setIsOpen(false);
+      setEditingBook(null);
+      setForm({ title: "", description: "", category_id: "", tags: "", coverImage: null });
+      fetchBooks();
     } catch (err) {
-      console.error("Error adding book:", err.response?.data || err.message);
+      alert(err.response?.data?.error || "Erreur sauvegarde");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm("Supprimer définitivement ce manga ?")) return;
+    try {
+      await axios.delete(`https://localhost:5000/api/books/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchBooks();
+    } catch (err) {
+      alert("Erreur suppression");
     }
   };
 
   return (
-    <section aria-label="Books management section"> {/* WCAG: Ajouté aria-label pour accessibilité */}
-      {/* Ajouter meta tags ici avec react-helmet si utilisé :
-      <Helmet>
-        <title>Books Management - MangaVerse</title>
-        <meta name="description" content="Manage manga books on the MangaVerse admin panel." />
-        <meta name="keywords" content="books, manga, management" />
-        <meta name="robots" content="index, follow" />
-      </Helmet> */}
-      <h1>Manage Books</h1>
-      <AddBookForm onSubmit={handleAddBook} aria-label="Add new book form"> {/* WCAG: Ajouté aria-label pour accessibilité */}
-        <Input
-          type="text"
-          value={newBook.title}
-          onChange={(e) => setNewBook({ ...newBook, title: e.target.value })}
-          placeholder="Enter book title"
-          aria-label="Book title input" // WCAG: Ajouté aria-label pour accessibilité
-        />
-        <Input
-          type="text"
-          value={newBook.description}
-          onChange={(e) => setNewBook({ ...newBook, description: e.target.value })}
-          placeholder="Enter book description"
-          aria-label="Book description input" // WCAG: Ajouté aria-label pour accessibilité
-        />
-        <Input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setCoverImage(e.target.files[0])}
-          aria-label="Book cover image upload" // WCAG: Ajouté aria-label pour accessibilité
-        />
-        <AddButton type="submit" aria-label="Add book button"> {/* WCAG: Ajouté aria-label pour accessibilité */}
-          <FaPlus /> Add Book
+    <Container>
+      <Header>
+        <Title>Gestion des Mangas ({books.length})</Title>
+        <AddButton
+          onClick={() => {
+            setEditingBook(null);
+            setCanEditTitle(true);
+            setForm({ title: "", description: "", category_id: "", tags: "", coverImage: null });
+            setIsOpen(true);
+          }}
+        >
+          + Ajouter un Manga
         </AddButton>
-      </AddBookForm>
-      {error && <div style={{ color: "red" }} role="alert">{error}</div>} {/* WCAG: Ajouté role="alert" pour accessibilité */}
-      <BooksTable aria-label="Books table"> {/* WCAG: Ajouté aria-label pour accessibilité */}
-        <thead>
-          <tr>
-            <TableHeader>Title</TableHeader>
-            <TableHeader>Description</TableHeader>
-            <TableHeader>Cover Image</TableHeader>
-            <TableHeader>Views</TableHeader>
-          </tr>
-        </thead>
-        <tbody>
-          {books.map((book) => (
-            <TableRow key={book.id}>
-              <TableCell>{book.title}</TableCell>
-              <TableCell>{book.description}</TableCell>
-              <TableCell>
-                {book.coverImage && <img src={book.coverImage} alt={`Cover of ${book.title}`} style={{ maxWidth: "100px" }} // WCAG: Ajouté alt descriptif
-                />}
-              </TableCell>
-              <TableCell>{book.views}</TableCell>
-            </TableRow>
+      </Header>
+
+      <Grid>
+        {paginatedBooks.map((book) => (
+          <Card key={book.id}>
+            <CoverLink onClick={() => navigate(`/admin/manga/${book.id_book}/chapters`)}>
+              <Cover
+                src={`${book.coverImage?.startsWith("http") ? book.coverImage : `https://localhost:5000${book.coverImage || `/mangas/${book.title}/cover${book.title}.jpg`}`}?$t=${Date.now()}`}
+                alt={book.title}
+                loading="lazy"
+              />
+            </CoverLink>
+
+            <Info>
+              <MangaTitle title={book.title}>{book.title}</MangaTitle>
+              <Category>{book.category_name || "Aucune catégorie"}</Category>
+              {book.tags && <Tags>#{book.tags.replace(/,/g, " #")}</Tags>}
+
+              <Actions>
+                <EditBtn
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEdit(book);
+                  }}
+                >
+                  Modifier infos
+                </EditBtn>
+                <DeleteBtn
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(book.id);
+                  }}
+                >
+                  Supprimer
+                </DeleteBtn>
+              </Actions>
+            </Info>
+          </Card>
+        ))}
+      </Grid>
+
+      {totalPages > 1 && (
+        <Pagination>
+          <PageBtn onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+            Précédent
+          </PageBtn>
+          {[...Array(totalPages)].map((_, i) => (
+            <PageBtn
+              key={i + 1}
+              active={currentPage === i + 1}
+              onClick={() => setCurrentPage(i + 1)}
+            >
+              {i + 1}
+            </PageBtn>
           ))}
-        </tbody>
-      </BooksTable>
-      <SaveButton
-        onClick={async () => {
-          try {
-            const token = Cookies.get("session_token");
-            const originalBooks = await axios.get("https://localhost:5000/api/books", {
-              headers: { Authorization: `Bearer ${token}` },
-            }).then(res => res.data);
-            const updatedBooks = books.filter(book => {
-              const original = originalBooks.find(b => b.id === book.id);
-              return original && (book.title !== original.title || book.description !== original.description || book.views !== original.views);
-            });
-            for (const book of updatedBooks) {
-              await axios.put(`https://localhost:5000/api/books/${book.id}`, book, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-            }
-            if (updatedBooks.length > 0) {
-              console.log("Changes saved to database:", updatedBooks);
-            } else {
-              console.log("No changes to save");
-            }
-          } catch (err) {
-            console.error("Error saving changes:", err);
-          }
-        }}
-        aria-label="Save changes button" // WCAG: Ajouté aria-label pour accessibilité
-      >
-        Save Changes
-      </SaveButton>
-    </section>
+          <PageBtn onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+            Suivant
+          </PageBtn>
+        </Pagination>
+      )}
+
+      {/* MODAL D'AJOUT/ÉDITION */}
+      {isOpen && (
+        <ModalOverlay onClick={() => setIsOpen(false)}>
+          <Modal onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ marginTop: 0, fontFamily: "Montserrat" }}>
+              {editingBook ? "Modifier" : "Ajouter"} un Manga
+            </h2>
+            <form onSubmit={handleSubmit}>
+              <Input
+                type="text"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder={canEditTitle ? "Titre du manga" : "Impossible de modifier (chapitres existants)"}
+                disabled={!canEditTitle}
+                required
+              />
+              <TextArea
+                placeholder="Description (facultatif)"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+              <Select
+                value={form.category_id}
+                onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+              >
+                <option value="">Choisir une catégorie</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </Select>
+              <TagInput
+                type="text"
+                placeholder="Tags (ex: action, romance, shonen)"
+                value={form.tags}
+                onChange={(e) => setForm({ ...form, tags: e.target.value })}
+              />
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setForm({ ...form, coverImage: e.target.files?.[0] || null })}
+              />
+              <div style={{ display: "flex", gap: "15px", marginTop: "25px" }}>
+                <button
+                  type="submit"
+                  style={{
+                    flex: 1,
+                    padding: "14px",
+                    background: "#518cc7",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "10px",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
+                >
+                  {editingBook ? "Sauvegarder" : "Créer"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  style={{
+                    flex: 1,
+                    padding: "14px",
+                    background: "#666",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Annuler
+                </button>
+              </div>
+            </form>
+          </Modal>
+        </ModalOverlay>
+      )}
+    </Container>
   );
 }
-
-export default Books;

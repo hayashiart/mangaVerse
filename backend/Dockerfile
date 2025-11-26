@@ -1,23 +1,22 @@
-# Utilise une image Node.js officielle
-FROM node:18
-
-# Définit le répertoire de travail
+# backend/Dockerfile – VERSION CORRIGÉE
+FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Copie les fichiers package.json et package-lock.json
 COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
 
-# Installe les dépendances
-RUN npm install
+FROM node:18-alpine
+WORKDIR /app
 
-# Copie les images mangas
-COPY mangas/ ./mangas/
+RUN addgroup -g 1001 nodejs && adduser -S -u 1001 nodejs
 
-# Copie le reste des fichiers
-COPY . .
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 
-# Expose le port 5000
+# COPIE TOUT LE CODE + LE DOSSIER MANGAS
+COPY --chown=nodejs:nodejs . .
+
 EXPOSE 5000
 
-# Commande pour démarrer l'application
+USER nodejs
+
 CMD ["node", "app.js"]

@@ -1,0 +1,6 @@
+# backend/.dockerignore – VERSION CORRIGÉE
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore

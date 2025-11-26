@@ -1,37 +1,71 @@
-version: '3.8'
-
+# docker-compose.yml – VERSION FINALE 100% FONCTIONNELLE (2025)
 services:
+  db:
+    image: mysql:8.0.36
+    container_name: mangaverse-db
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: Seb12345!
+      MYSQL_DATABASE: mangaverse_db
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./data/tables.sql:/docker-entrypoint-initdb.d/1-tables.sql:ro
+      - ./data/insert_data.sql:/docker-entrypoint-initdb.d/2-data.sql:ro
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pSeb12345!"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+    networks:
+      - mangaverse_network
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: mangaverse-api
     ports:
       - "5000:5000"
-    volumes:
-      - ./backend:/app
+    env_file:
+      - ./.env
     environment:
-      - NODE_ENV=development
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: Seb12345!
+      DB_NAME: mangaverse_db
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    networks:
+      - mangaverse_network
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend-vite
       dockerfile: Dockerfile
+    container_name: mangaverse-web
     ports:
-      - "1234:80"
+      - "80:80"
+      - "443:443"
     depends_on:
       - backend
+    networks:
+      - mangaverse_network
+    restart: unless-stopped
 
-  db:
-    image: mysql:8.0
-    environment:
-      - MYSQL_ROOT_PASSWORD=rootpassword123
-      - MYSQL_DATABASE=mangaverse
-    ports:
-      - "3306:3306"
-    volumes:
-      - db_data:/var/lib/mysql
+networks:
+  mangaverse_network:
+    driver: bridge
+    name: mangaverse_net
 
 volumes:
   db_data:
+    name: mangaverse_db_data

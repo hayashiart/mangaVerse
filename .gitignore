@@ -1,10 +1,15 @@
-# Ignorer les dossiers node_modules
-node_modules/
-# Ignorer les fichiers de build
+# Env files
+.env
+.env.local
+
+# Builds
 dist/
-# Ignorer les images (scans et icônes)
-frontend/src/assets/images/*
-frontend/src/assets/icons/*
-# Ignorer fichiers sensibles
-backend/.env
-backend/mangaverse-e07e3-firebase-adminsdk-fbsvc-c807ab9231.json
+
+# OS/Editors
+.Thumbs.db
+.DS_Store
+.vscode/
+
+# Logs/Cache
+*.log
+npm-debug.log*

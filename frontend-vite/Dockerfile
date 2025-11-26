@@ -1,29 +1,32 @@
-# Utilise une image Node.js pour construire
-FROM node:18 AS build
-
-# Définit le répertoire de travail
+# frontend-vite/Dockerfile – Version 2025 (légère amélioration)
+FROM node:18-alpine AS build
 WORKDIR /app
 
-# Copie les fichiers package.json et package-lock.json
+# Copie package.json + lock
 COPY package*.json ./
+RUN npm ci
 
-# Installe les dépendances (inclut js-cookie)
-RUN npm install
-
-# Copie le reste des fichiers
+# Copie tout le code source
 COPY . .
 
-# Construit l'application
-RUN npm run build
+# Variables d’environnement pour le build (optionnel mais propre)
+ARG VITE_BACKEND_URL=https://tondomaine.com/api
+ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
 
-# Utilise une image légère pour servir
+# Build de production
+RUN npm run build -- --mode production
+
+# Étape finale : Nginx ultra léger
 FROM nginx:alpine
 
-# Copie les fichiers construits dans le répertoire de Nginx
+# Copie le build React
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Expose le port 80 (Nginx)
-EXPOSE 80
+# Copie une config Nginx sécurisée (fortement recommandé)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Démarre Nginx
+# Exposition ports
+EXPOSE 80 443
+
+# Nginx en foreground
 CMD ["nginx", "-g", "daemon off;"]
