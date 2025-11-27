@@ -161,5 +161,4 @@ VITE_API_URL=/api
 MIT License – see the LICENSE file for details.
 
 ---
-**MangaVerse** – Because every story deserves to be read beautifully.  
-November 2025
+**MangaVerse** 
