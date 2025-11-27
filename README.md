@@ -1,9 +1,8 @@
 
-```markdown
+
 # MangaVerse – Full-Stack Manga Reader
 **Your complete, beautiful and professional manga reading platform**
 
-Final version – November 2025  
 
 ## Project Description
 MangaVerse is a modern, full-featured manga (scanlation) platform with everything you need:
@@ -32,6 +31,7 @@ Ready to run in 2 minutes and deploy for free!
 - Perfect mobile experience (burger menu)
 
 ## Demo Content Already Included
+
 The `backend/mangas/` folder already contains 4 complete manga ready to read:
 
 ```
@@ -161,6 +161,5 @@ VITE_API_URL=/api
 MIT License – see the LICENSE file for details.
 
 ---
-**MangaVerse** 
+**MangaVerse** – Because every story deserves to be read beautifully.  
 November 2025
-```
