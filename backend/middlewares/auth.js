@@ -1,13 +1,22 @@
-const jwt = require("jsonwebtoken"); // Importe la bibliothèque JWT pour vérifier et décoder les tokens
+// middlewares/auth.js
+const jwt = require("jsonwebtoken");
 const db = require("../db");
 
-// Fonction middleware pour authentifier les requêtes avec JWT
 const authenticateJWT = async (req, res, next) => {
-  console.log("Authenticating request for path:", req.path, "Token:", req.headers.authorization);
-  const token = req.headers.authorization?.split(" ")[1];
+  console.log("Authenticating request for path:", req.path);
+
+  // 1. Essaie d'abord dans les headers (standard)
+  let token = req.headers.authorization?.split(" ")[1];
+
+  // 2. Si pas dans headers, essaie dans les cookies
+  if (!token && req.cookies && req.cookies.session_token) {
+    token = req.cookies.session_token;
+  }
+
   if (!token) {
     return res.status(401).json({ error: "No token provided" });
   }
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const [user] = await db.query("SELECT id_user, role FROM Users WHERE id_user = ?", [decoded.id_user]);
@@ -19,4 +28,5 @@ const authenticateJWT = async (req, res, next) => {
     res.status(401).json({ error: "Invalid token" });
   }
 };
-module.exports = authenticateJWT; // Exporte la fonction pour l'utiliser dans d'autres fichiers (ex. routes/manga.js)
+
+module.exports = authenticateJWT;

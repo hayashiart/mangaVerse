@@ -400,42 +400,61 @@ function MangaPage() {
   const [isBookmarked, setIsBookmarked] = useState(false);
 
   const handleStarClick = async (rating) => {
-    try {
-      const token = Cookies.get("session_token");
-      if (!token) return alert("Please login first");
-      await axios.post(
-        "https://localhost:5000/api/ratings/reviews/add",
-        { book_id: manga.id_book, rating },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setUserRating(rating);
-      const response = await axios.get(`https://localhost:5000/api/manga/manga/${encodeURIComponent(title)}`);
-      setManga(response.data.manga);
-    } catch (err) {
-      alert(err.response?.data?.error || "Error adding rating");
-    }
-  };
+  const token = Cookies.get("session_token");
+  if (!token) {
+    alert("Please login first");
+    return;
+  }
+
+  try {
+    await axios.post(
+      "https://localhost:5000/api/ratings/reviews/add",
+      { book_id: manga.id_book, rating },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setUserRating(rating);
+    const response = await axios.get(`https://localhost:5000/api/manga/manga/${encodeURIComponent(title)}`);
+    setManga(response.data.manga);
+  } catch (err) {
+    alert(err.response?.data?.error || "Error adding rating");
+  }
+};
 
   const handleAddComment = async (e) => {
-    e.preventDefault();
-    try {
-      const token = Cookies.get("session_token");
-      if (!token) return alert("Please login first");
-      const sanitizedComment = DOMPurify.sanitize(newComment);
-await axios.post(
-  "https://localhost:5000/api/reviews/reviews",
-  { book_id: manga.id_book, comment: sanitizedComment, parent_id: replyTo },
-  { headers: { Authorization: `Bearer ${Cookies.get("session_token")}` } }
-);
-      setNewComment("");
-      setReplyTo(null);
-      setReplyInputs(prev => ({ ...prev, [replyTo]: false }));
-      const response = await axios.get(`https://localhost:5000/api/reviews/reviews/${manga.id_book}`);
-      setComments(buildCommentTree(response.data));
-    } catch (err) {
-      alert(err.response?.data?.error || "Error adding comment");
-    }
-  };
+  e.preventDefault();
+  const token = Cookies.get("session_token");  // ← Une seule fois ici
+  if (!token) {
+    alert("Please login first");
+    return;
+  }
+
+  const sanitizedComment = DOMPurify.sanitize(newComment);
+  if (!sanitizedComment.trim()) {
+    setError("Comment cannot be empty");
+    return;
+  }
+
+  try {
+    await axios.post(
+      "https://localhost:5000/api/reviews/reviews",
+      { 
+        book_id: manga.id_book, 
+        comment: sanitizedComment, 
+        parent_id: replyTo 
+      },
+      { headers: { Authorization: `Bearer ${token}` } }  // ← Utilise la variable
+    );
+
+    setNewComment("");
+    setReplyTo(null);
+    setReplyInputs({});
+
+    const response = await axios.get(`https://localhost:5000/api/reviews/reviews/${manga.id_book}`);
+    setComments(buildCommentTree(response.data));
+  } catch (err) {
+    setError(err.response?.data?.error || "Error adding comment");
+  }
+};
 
   const buildCommentTree = (comments) => {
     const map = {};
