@@ -76,6 +76,7 @@ mangaVerse/
 - Docker + Docker Compose (strongly recommended)
 - Node.js 18+ (only if running without Docker)
 
+
 ## Quick Start – Docker (Recommended)
 ```bash
 git clone https://github.com/hayashiart/mangaVerse.git
@@ -118,6 +119,15 @@ npm run dev               # https://localhost:1234
 ```
 
 ### Environment Files
+
+**Generate SSL certificates (required for local HTTPS)**
+
+In the `backend/` folder:
+
+```bash
+cd backend
+openssl req -x509 -newkey rsa:4096 -keyout localhost-key.pem -out localhost.pem -days 365 -nodes -subj "/CN=localhost"
+```
 
 **backend/.env**
 ```env
