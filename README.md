@@ -3,6 +3,19 @@
 # MangaVerse – Full-Stack Manga Reader
 **Your complete, beautiful and professional manga reading platform**
 
+## Screenshots
+
+![Home Page](screenshots/pageAccueil.png)  
+*Home page with "Most Viewed" and "Recently Updated" sections*
+
+![Manga Details](screenshots/pageManga.png)  
+*Detailed manga page with chapters, ratings, and comments*
+
+![Chapter Reader](screenshots/pageLecture.png)  
+*Smooth chapter reader with sidebar navigation and page display*
+
+![Registration](screenshots/pageInscription.png)  
+*Clean and secure registration form*
 
 ## Project Description
 MangaVerse is a modern, full-featured manga (scanlation) platform with everything you need:
